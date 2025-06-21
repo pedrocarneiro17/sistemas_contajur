@@ -2,22 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "home/*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "app.py",
-      "use": "@vercel/python"
+      "src": "main.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["home/**"] }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "main.py"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "home/static/$1"
     }
   ]
 }

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrator de Extrato Bancário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='extrator.css') }}">
+</head>
+<body>
+    <!-- Botão Voltar -->
+    <a href="/" class="back-btn">Voltar</a>
+
+    <div class="container">
+        <h1>Extrator de Extrato Bancário</h1>
+        <p>Faça upload de arquivos PDF para testar o processamento.</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Arraste e solte arquivos PDF aqui ou</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Selecionar Arquivos</button>
+            <input type="file" id="fileInput" class="file-input" multiple accept=".pdf">
+        </div>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <button class="process-btn" id="processBtn" onclick="processFiles()" disabled>Processar Extratos</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando arquivos...</p>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        // Event listeners para drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+            addFiles(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            addFiles(files);
+        });
+
+        function addFiles(files) {
+            files.forEach(file => {
+                if (!selectedFiles.find(f => f.name === file.name)) {
+                    selectedFiles.push(file);
+                }
+            });
+            updateFileList();
+            updateProcessButton();
+        }
+        
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    <div>
+                 <!--   <button class="debug-btn" onclick="debugFile(${index})">Debug</button> -->
+                        <button class="remove-btn" onclick="removeFile(${index})">Remover</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateProcessButton();
+        }
+
+        function updateProcessButton() {
+            processBtn.disabled = selectedFiles.length === 0;
+        }
+
+        async function debugFile(index) {
+            const file = selectedFiles[index];
+            if (!file) return;
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/api/debug-file', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                const debugInfo = `
+Debug Info para: ${file.name}
+=====================================
+Filename: ${data.filename}
+Content Type: ${data.content_type}
+Size: ${data.size} bytes
+Extension Valid: ${data.extension_valid}
+PDF Signature: ${data.pdf_signature}
+First Bytes: ${data.first_bytes}
+Read PDF Success: ${data.read_pdf_success || false}
+Identified Bank: ${data.identified_bank || 'N/A'}
+Text Length: ${data.text_length || 0}
+Read PDF Error: ${data.read_pdf_error || 'N/A'}
+Error: ${data.error || 'N/A'}
+                `;
+                
+                results.innerHTML = `<div class="results warning"><h3>🔍 Debug Info</h3><div class="debug-info">${debugInfo}</div></div>`;
+                
+            } catch (error) {
+                results.innerHTML = `<div class="results error"><h3>❌ Erro no Debug</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+    async function processFiles() {
+        if (selectedFiles.length === 0) return;
+        
+        loading.style.display = 'block';
+        results.innerHTML = '';
+        processBtn.disabled = true;
+        
+        try {
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            const response = await fetch('/api/process-extracts', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            console.log('Resposta do servidor:', data); // Log para depuração
+            
+            loading.style.display = 'none';
+            
+            // Verificar se data.results existe e é um array
+            if (!data.results || !Array.isArray(data.results)) {
+                results.innerHTML = `
+                    <div class="results error">
+                        <h3>❌ Erro no Processamento</h3>
+                        <p>Resposta inválida do servidor: ${data.error || 'Nenhum resultado retornado'}</p>
+                    </div>
+                `;
+                processBtn.disabled = false;
+                return;
+            }
+            
+            if (data.success) {
+                results.innerHTML = `
+                    <div class="results success">
+                        <h3>✅ Processamento Concluído!</h3>
+                        <p><strong>${data.successful_files}</strong> de <strong>${data.total_files}</strong> arquivos processados com sucesso.</p>
+                        <h4>Detalhes:</h4>
+                        <ul>
+                            ${data.results.map(result => 
+                                `<li><strong>${result.filename}</strong>: ${result.success ? '✅ Sucesso' : '❌ ' + (result.error || 'Erro desconhecido')}</li>`
+                            ).join('')}
+                        </ul>
+                        ${data.successful_files > 0 ? 
+                            `<a href="/api/download-zip" class="download-btn" download>📥 Baixar CSVs (ZIP)</a>` : 
+                            ''
+                        }
+                    </div>
+                `;
+            } else {
+                // Caso de falha (incluindo um único arquivo)
+                results.innerHTML = `
+                    <div class="results ${data.results.length === 1 ? 'neutral' : 'error'}">
+                        <h3>${data.results.length === 1 ? '⚠' : '❌'} Processamento Concluído!</h3>
+                        <p>${data.message || 'Falha no processamento'}</p>
+                        <h4>Detalhes:</h4>
+                        <ul>
+                            ${data.results.map(result => 
+                                `<li><strong>${result.filename}</strong>: ${result.error || 'Erro desconhecido'}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Erro na requisição:', error); // Log para depuração
+            loading.style.display = 'none';
+            results.innerHTML = `
+                <div class="results error">
+                    <h3>❌ Erro de Conexão</h3>
+                    <p>Não foi possível conectar com o servidor.</p>
+                    <p><strong>Erro:</strong> ${error.message}</p>
+                </div>
+            `;
+        }
+        
+        processBtn.disabled = false;
+    }
+    </script>
+</body>
+</html>

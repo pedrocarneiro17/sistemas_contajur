@@ -2,15 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "main.py",
+      "src": "sistemas_contajur/main.py",
       "use": "@vercel/python",
-      "config": { "includeFiles": ["home/**"] }
+      "config": { "includeFiles": ["sistemas_contajur/home/**"] }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "main.py"
+      "dest": "sistemas_contajur/main.py"
     }
   ]
 }

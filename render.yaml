@@ -1,0 +1,12 @@
+databases:
+  - name: sistemas-contajur
+    databaseName: sistemas_contajur
+    user: user
+services:
+  - type: web
+    name: sistemas-contajur
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python home/main.py"
+    repo: https://github.com/pedrocarneiro17/sistemas_contajur
+    branch: main

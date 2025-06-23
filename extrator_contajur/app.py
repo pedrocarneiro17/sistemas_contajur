@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, render_template
+from flask import Blueprint, request, jsonify, send_file, render_template
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
@@ -6,24 +6,17 @@ import tempfile
 import concurrent.futures
 import io
 import zipfile
-import json
 from pathlib import Path
-
-# Importar as funções existentes
 from .auxiliares.pdf_reader import validate_pdf, read_pdf
 from .auxiliares.pdf_reader2 import read_pdf2
 from .banco import get_processor
 from .auxiliares.xml_to_csv import xml_to_csv
 
-# Configurar o Flask com caminhos absolutos
-base_dir = os.path.dirname(os.path.abspath(__file__))  # Obtém o caminho absoluto de extrator-contajur/
-app = Flask(__name__, 
-            template_folder=os.path.join(base_dir, '../home/templates'),
-            static_folder=os.path.join(base_dir, '../home/static'))
-CORS(app)
+# Configurar o Blueprint
+extrator_bp = Blueprint('extrator', __name__)
+CORS(extrator_bp)
 
 # Configurações
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 UPLOAD_FOLDER = tempfile.gettempdir()
 ALLOWED_EXTENSIONS = {'pdf'}
 
@@ -44,7 +37,6 @@ def validate_pdf_content(file_content):
 
 def process_single_pdf_flask(file_content, filename, bank, text):
     """
-    Versão Flask da função process_single_pdf
     Processa um único PDF e retorna o resultado
     """
     try:
@@ -106,12 +98,17 @@ def create_zip_from_results(results):
     zip_buffer.seek(0)
     return zip_buffer
 
-@app.route('/api/health', methods=['GET'])
+@extrator_bp.route('/extrator')
+def extrator():
+    """Rota para renderizar a página de extrator"""
+    return render_template('extrator.html')
+
+@extrator_bp.route('/api/health', methods=['GET'])
 def health_check():
     """Endpoint para verificar se a API está funcionando"""
     return jsonify({'status': 'OK', 'message': 'API está funcionando'})
 
-@app.route('/api/process-extracts', methods=['POST'])
+@extrator_bp.route('/api/process-extracts', methods=['POST'])
 def process_extracts():
     """
     Endpoint principal para processar extratos bancários
@@ -259,7 +256,6 @@ def process_extracts():
             })
         else:
             if len(files) == 1:
-                # Simplifica para um único arquivo falho
                 return jsonify({
                     'success': False,
                     'message': 'Processamento Concluído',
@@ -281,8 +277,8 @@ def process_extracts():
             'results': [],
             'error': f'Erro interno do servidor: {str(e)}'
         }), 500
-        
-@app.route('/api/download-zip', methods=['GET'])
+
+@extrator_bp.route('/api/download-zip', methods=['GET'])
 def download_zip():
     """
     Endpoint para download do arquivo ZIP com os CSVs
@@ -300,7 +296,7 @@ def download_zip():
     except Exception as e:
         return jsonify({'error': f'Erro ao fazer download: {str(e)}'}), 500
 
-@app.route('/api/identify-bank', methods=['POST'])
+@extrator_bp.route('/api/identify-bank', methods=['POST'])
 def identify_bank():
     """
     Endpoint para identificar apenas o banco de um PDF (útil para preview)
@@ -352,7 +348,7 @@ def identify_bank():
     except Exception as e:
         return jsonify({'error': f'Erro interno do servidor: {str(e)}'}), 500
 
-@app.route('/api/debug-file', methods=['POST'])
+@extrator_bp.route('/api/debug-file', methods=['POST'])
 def debug_file():
     """
     Endpoint para debug - verificar informações detalhadas do arquivo
@@ -392,13 +388,3 @@ def debug_file():
         return jsonify(file_info)
     except Exception as e:
         return jsonify({'error': f'Erro interno do servidor: {str(e)}'}), 500
-
-@app.route('/')
-def index():
-    """Rota principal - renderiza o home.html"""
-    return render_template('home.html')
-
-@app.route('/extrator')
-def extrator():
-    """Rota para renderizar o extrator.html"""
-    return render_template('extrator.html')

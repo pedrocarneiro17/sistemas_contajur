@@ -1,1 +1,1 @@
-from .app import app
+from .app import extrator_bp

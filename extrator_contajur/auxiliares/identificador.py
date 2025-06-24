@@ -17,6 +17,10 @@ def identificar_banco(text):
     if 'ouvidoria@nubank.com.br' in text:
         return "Nubank"
     
+    # Mercado Pago
+    if 'www.mercadopago.com.br' in text or 'Mercado Pago' in text:
+        return "Mercado Pago"
+    
     # Efi
     if 'Efí S.A.' in text and 'Filtros aplicados' in text:
         return "Efi1"
@@ -104,9 +108,5 @@ def identificar_banco(text):
     # InfinitePay
     if 'ajuda@infinitepay.io' in text:
         return "InfinitePay"
-
-    # Mercado Pago
-    if 'www.mercadopago.com.br' in text or 'Mercado Pago' in text:
-        return "Mercado Pago"
 
     return "Banco não identificado"

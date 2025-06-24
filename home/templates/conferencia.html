@@ -58,179 +58,198 @@
     </div>
 
     <script>
-        let selectedFiles = { pdf: null, excel: null };
-        const uploadAreaPdf = document.getElementById('uploadAreaPdf');
-        const uploadAreaExcel = document.getElementById('uploadAreaExcel');
-        const pdfInput = document.getElementById('pdfInput');
-        const excelInput = document.getElementById('excelInput');
-        const pdfFileList = document.getElementById('pdfFileList');
-        const excelFileList = document.getElementById('excelFileList');
-        const processPdfBtn = document.getElementById('processPdfBtn');
-        const processExcelBtn = document.getElementById('processExcelBtn');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
+    let selectedFiles = { pdf: null, excel: null };
+    const uploadAreaPdf = document.getElementById('uploadAreaPdf');
+    const uploadAreaExcel = document.getElementById('uploadAreaExcel');
+    const pdfInput = document.getElementById('pdfInput');
+    const excelInput = document.getElementById('excelInput');
+    const pdfFileList = document.getElementById('pdfFileList');
+    const excelFileList = document.getElementById('excelFileList');
+    const processPdfBtn = document.getElementById('processPdfBtn');
+    const processExcelBtn = document.getElementById('processExcelBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
 
-        // Eventos para upload de PDF
-        uploadAreaPdf.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadAreaPdf.classList.add('dragover');
-        });
+    // Eventos para upload de PDF
+    uploadAreaPdf.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadAreaPdf.classList.add('dragover');
+    });
 
-        uploadAreaPdf.addEventListener('dragleave', () => {
-            uploadAreaPdf.classList.remove('dragover');
-        });
+    uploadAreaPdf.addEventListener('dragleave', () => {
+        uploadAreaPdf.classList.remove('dragover');
+    });
 
-        uploadAreaPdf.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadAreaPdf.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
-            if (files.length > 0) {
-                selectedFiles.pdf = files[0];
-                updateFileList('pdf');
-                updateProcessButton('pdf');
-            }
-        });
-
-        pdfInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files).filter(file => file.type === 'application/pdf');
-            if (files.length > 0) {
-                selectedFiles.pdf = files[0];
-                updateFileList('pdf');
-                updateProcessButton('pdf');
-            }
-        });
-
-        // Eventos para upload de Excel
-        uploadAreaExcel.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadAreaExcel.classList.add('dragover');
-        });
-
-        uploadAreaExcel.addEventListener('dragleave', () => {
-            uploadAreaExcel.classList.remove('dragover');
-        });
-
-        uploadAreaExcel.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadAreaExcel.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer.files).filter(file => ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type));
-            if (files.length > 0) {
-                selectedFiles.excel = files[0];
-                updateFileList('excel');
-                updateProcessButton('excel');
-            }
-        });
-
-        excelInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files).filter(file => ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type));
-            if (files.length > 0) {
-                selectedFiles.excel = files[0];
-                updateFileList('excel');
-                updateProcessButton('excel');
-            }
-        });
-
-        function updateFileList(type) {
-            const fileList = type === 'pdf' ? pdfFileList : excelFileList;
-            fileList.innerHTML = selectedFiles[type] ? `
-                <div class="file-item">${type === 'pdf' ? '📄' : '📊'} ${selectedFiles[type].name} (<button class="remove-btn" onclick="removeFile('${type}')">Remover</button>)</div>
-            ` : '';
+    uploadAreaPdf.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadAreaPdf.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+        if (files.length > 0) {
+            selectedFiles.pdf = files[0];
+            updateFileList('pdf');
+            updateProcessButton('pdf');
         }
+    });
 
-        function removeFile(type) {
-            selectedFiles[type] = null;
-            updateFileList(type);
-            updateProcessButton(type);
+    pdfInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files).filter(file => file.type === 'application/pdf');
+        if (files.length > 0) {
+            selectedFiles.pdf = files[0];
+            updateFileList('pdf');
+            updateProcessButton('pdf');
         }
+    });
 
-        function updateProcessButton(type) {
-            if (type === 'pdf') {
-                processPdfBtn.disabled = !selectedFiles.pdf;
-            } else if (type === 'excel') {
-                processExcelBtn.disabled = !selectedFiles.excel;
+    // Eventos para upload de Excel
+    uploadAreaExcel.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadAreaExcel.classList.add('dragover');
+    });
+
+    uploadAreaExcel.addEventListener('dragleave', () => {
+        uploadAreaExcel.classList.remove('dragover');
+    });
+
+    uploadAreaExcel.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadAreaExcel.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(file => ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type));
+        if (files.length > 0) {
+            selectedFiles.excel = files[0];
+            updateFileList('excel');
+            updateProcessButton('excel');
+        }
+    });
+
+    excelInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files).filter(file => ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type));
+        if (files.length > 0) {
+            selectedFiles.excel = files[0];
+            updateFileList('excel');
+            updateProcessButton('excel');
+        }
+    });
+
+    function updateFileList(type) {
+        const fileList = type === 'pdf' ? pdfFileList : excelFileList;
+        fileList.innerHTML = selectedFiles[type] ? `
+            <div class="file-item">${type === 'pdf' ? '📄' : '📊'} ${selectedFiles[type].name} (<button class="remove-btn" onclick="removeFile('${type}')">Remover</button>)</div>
+        ` : '';
+    }
+
+    function removeFile(type) {
+        selectedFiles[type] = null;
+        if (type === 'pdf') pdfInput.value = null;
+        if (type === 'excel') excelInput.value = null;
+        updateFileList(type);
+        updateProcessButton(type);
+    }
+
+    function updateProcessButton(type) {
+        if (type === 'pdf') {
+            processPdfBtn.disabled = !selectedFiles.pdf;
+        } else if (type === 'excel') {
+            processExcelBtn.disabled = !selectedFiles.excel;
+        }
+    }
+
+    async function processPdf() {
+        if (!selectedFiles.pdf) return;
+
+        const formData = new FormData();
+        formData.append('pdf', selectedFiles.pdf);
+
+        loading.style.display = 'block';
+        processPdfBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/process-pdf', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'pdf_output.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                results.innerHTML = '<div class="results success"><h3>✅ Processamento concluído</h3><p>O Excel gerado do PDF foi baixado.</p><button class="upload-btn" onclick="resetForm(\'pdf\')"';
+            } else {
+                const data = await response.json();
+                results.innerHTML = `<div class="results error"><h3>❌ Erro</h3><p>${data.error || 'Erro desconhecido'}</p></div>`;
             }
+        } catch (error) {
+            results.innerHTML = `<div class="results error"><h3>❌ Erro de Conexão</h3><p>${error.message}</p></div>`;
+        } finally {
+            loading.style.display = 'none';
+            processPdfBtn.disabled = false;
+            selectedFiles.pdf = null;
+            pdfInput.value = null;
+            pdfFileList.innerHTML = '';
         }
+    }
 
-        async function processPdf() {
-            if (!selectedFiles.pdf) return;
+    async function processExcel() {
+        if (!selectedFiles.excel) return;
 
-            const formData = new FormData();
-            formData.append('pdf', selectedFiles.pdf);
+        const formData = new FormData();
+        formData.append('excel', selectedFiles.excel);
 
-            loading.style.display = 'block';
+        loading.style.display = 'block';
+        processExcelBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/process-excel', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'excel_output.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                results.innerHTML = '<div class="results success"><h3>✅ Processamento concluído</h3><p>O Excel processado foi baixado.</p><button class="upload-btn" onclick="resetForm(\'excel\')"';
+            } else {
+                const data = await response.json();
+                results.innerHTML = `<div class="results error"><h3>❌ Erro</h3><p>${data.error || 'Erro desconhecido'}</p></div>`;
+            }
+        } catch (error) {
+            results.innerHTML = `<div class="results error"><h3>❌ Erro de Conexão</h3><p>${error.message}</p></div>`;
+        } finally {
+            loading.style.display = 'none';
+            processExcelBtn.disabled = false;
+            selectedFiles.excel = null;
+            excelInput.value = null;
+            excelFileList.innerHTML = '';
+        }
+    }
+
+    function resetForm(type) {
+        if (type === 'pdf') {
+            selectedFiles.pdf = null;
+            pdfInput.value = null;
+            pdfFileList.innerHTML = '';
             processPdfBtn.disabled = true;
-
-            try {
-                const response = await fetch('/api/process-pdf', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'pdf_output.xlsx';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                    results.innerHTML = '<div class="results success"><h3>✅ Processamento concluído</h3><p>O Excel gerado do PDF foi baixado.</p></div>';
-                } else {
-                    const data = await response.json();
-                    results.innerHTML = `<div class="results error"><h3>❌ Erro</h3><p>${data.error || 'Erro desconhecido'}</p></div>`;
-                }
-            } catch (error) {
-                results.innerHTML = `<div class="results error"><h3>❌ Erro de Conexão</h3><p>${error.message}</p></div>`;
-            } finally {
-                loading.style.display = 'none';
-                processPdfBtn.disabled = false;
-                selectedFiles.pdf = null;
-                pdfFileList.innerHTML = '';
-            }
-        }
-
-        async function processExcel() {
-            if (!selectedFiles.excel) return;
-
-            const formData = new FormData();
-            formData.append('excel', selectedFiles.excel);
-
-            loading.style.display = 'block';
+        } else if (type === 'excel') {
+            selectedFiles.excel = null;
+            excelInput.value = null;
+            excelFileList.innerHTML = '';
             processExcelBtn.disabled = true;
-
-            try {
-                const response = await fetch('/api/process-excel', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'excel_output.xlsx';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                    results.innerHTML = '<div class="results success"><h3>✅ Processamento concluído</h3><p>O Excel processado foi baixado.</p></div>';
-                } else {
-                    const data = await response.json();
-                    results.innerHTML = `<div class="results error"><h3>❌ Erro</h3><p>${data.error || 'Erro desconhecido'}</p></div>`;
-                }
-            } catch (error) {
-                results.innerHTML = `<div class="results error"><h3>❌ Erro de Conexão</h3><p>${error.message}</p></div>`;
-            } finally {
-                loading.style.display = 'none';
-                processExcelBtn.disabled = false;
-                selectedFiles.excel = null;
-                excelFileList.innerHTML = '';
-            }
         }
+        results.innerHTML = '';
+    }
 
-        processPdfBtn.addEventListener('click', processPdf);
-        processExcelBtn.addEventListener('click', processExcel);
-    </script>
+    processPdfBtn.addEventListener('click', processPdf);
+    processExcelBtn.addEventListener('click', processExcel);
+</script>
 </body>
 </html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boletos - Contajur</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='boletos.css') }}">
+</head>
+<body>
+    <!-- Botão Voltar -->
+    <a href="{{ url_for('index') }}" class="back-btn">Voltar</a>
+
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+        <h1>Relatório de Boletos</h1>
+        <p>Faça upload de dois arquivos CSV para gerar o relatório de transações.</p>
+
+        <!-- Seção para Upload de CSVs -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-section">
+                <p class="upload-title">Faça upload do CSV do extrato bancário</p>
+                <div class="upload-box">
+                    <p>📄 CSV do Extrator</p>
+                    <button class="upload-btn" onclick="document.getElementById('extratorInput').click()">Selecionar Arquivo</button>
+                    <input type="file" id="extratorInput" class="file-input" accept=".csv" required>
+                    <div class="file-info" id="extratorFileInfo"></div>
+                </div>
+            </div>
+            <div class="upload-section">
+                <p class="upload-title">Faça upload do CSV do sistema</p>
+                <div class="upload-box">
+                    <p>📄 CSV do Sistema</p>
+                    <button class="upload-btn" onclick="document.getElementById('sistemaInput').click()">Selecionar Arquivo</button>
+                    <input type="file" id="sistemaInput" class="file-input" accept=".csv" required>
+                    <div class="file-info" id="sistemaFileInfo"></div>
+                </div>
+            </div>
+            <button class="process-btn" id="processBtn" onclick="processFiles()" disabled>Gerar Relatório</button>
+        </div>
+
+        <!-- Área de loading -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processando arquivos...</p>
+        </div>
+
+        <!-- Área de resultados -->
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let selectedFiles = { extrator: null, sistema: null };
+        const uploadArea = document.getElementById('uploadArea');
+        const extratorInput = document.getElementById('extratorInput');
+        const sistemaInput = document.getElementById('sistemaInput');
+        const processBtn = document.getElementById('processBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const extratorFileInfo = document.getElementById('extratorFileInfo');
+        const sistemaFileInfo = document.getElementById('sistemaFileInfo');
+
+        // Eventos para upload de CSV do Extrator
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'text/csv' || file.name.endsWith('.csv'));
+            if (files.length > 0) {
+                if (!selectedFiles.extrator) {
+                    selectedFiles.extrator = files[0];
+                    updateFileList('extrator');
+                } else if (!selectedFiles.sistema) {
+                    selectedFiles.sistema = files[0];
+                    updateFileList('sistema');
+                }
+                updateProcessButton();
+            }
+        });
+
+        extratorInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+                if (!selectedFiles.extrator) {
+                    selectedFiles.extrator = file;
+                    updateFileList('extrator');
+                }
+            } else {
+                selectedFiles.extrator = null;
+                extratorFileInfo.innerHTML = 'Arquivo inválido. Selecione um CSV.';
+            }
+            updateProcessButton();
+        });
+
+        sistemaInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+                if (!selectedFiles.sistema) {
+                    selectedFiles.sistema = file;
+                    updateFileList('sistema');
+                }
+            } else {
+                selectedFiles.sistema = null;
+                sistemaFileInfo.innerHTML = 'Arquivo inválido. Selecione um CSV.';
+            }
+            updateProcessButton();
+        });
+
+        function updateFileList(type) {
+            const fileInfo = type === 'extrator' ? extratorFileInfo : sistemaFileInfo;
+            fileInfo.innerHTML = selectedFiles[type] ? `
+                📄 ${selectedFiles[type].name} (<button class="remove-btn" onclick="removeFile('${type}')">Remover</button>)
+            ` : '';
+        }
+
+        function removeFile(type) {
+            selectedFiles[type] = null;
+            if (type === 'extrator') extratorInput.value = null; // Reinicia o input
+            if (type === 'sistema') sistemaInput.value = null; // Reinicia o input
+            updateFileList(type);
+            updateProcessButton();
+        }
+
+        function updateProcessButton() {
+            processBtn.disabled = !selectedFiles.extrator || !selectedFiles.sistema;
+        }
+
+        async function processFiles() {
+            if (!selectedFiles.extrator || !selectedFiles.sistema) {
+                alert('Por favor, selecione ambos os arquivos CSV (Extrator e Sistema).');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            processBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('csv1', selectedFiles.extrator); // CSV do Extrator
+                formData.append('csv2', selectedFiles.sistema);  // CSV do Sistema
+                
+                const response = await fetch('/boletos/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'relatorio_boletos.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    results.innerHTML = `
+                        <div class="results success">
+                            <h3>✅ Relatório Gerado!</h3>
+                            <p>O arquivo relatorio_boletos.txt foi baixado.</p>
+                        </div>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    results.innerHTML = `
+                        <div class="results error">
+                            <h3>❌ Erro no Processamento</h3>
+                            <p>${errorText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                results.innerHTML = `
+                    <div class="results error">
+                        <h3>❌ Erro de Conexão</h3>
+                        <p>Não foi possível conectar com o servidor.</p>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+                processBtn.disabled = false;
+                selectedFiles.extrator = null;
+                selectedFiles.sistema = null;
+                extratorInput.value = null; // Reinicia o input
+                sistemaInput.value = null; // Reinicia o input
+                extratorFileInfo.innerHTML = '';
+                sistemaFileInfo.innerHTML = '';
+            }
+        }
+
+        function resetForm() {
+            selectedFiles.extrator = null;
+            selectedFiles.sistema = null;
+            extratorInput.value = null;
+            sistemaInput.value = null;
+            extratorFileInfo.innerHTML = '';
+            sistemaFileInfo.innerHTML = '';
+            results.innerHTML = '';
+            processBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>

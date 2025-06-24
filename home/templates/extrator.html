@@ -33,88 +33,88 @@
     </div>
 
     <script>
-        let selectedFiles = [];
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        const processBtn = document.getElementById('processBtn');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
+    let selectedFiles = [];
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const processBtn = document.getElementById('processBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
 
-        // Event listeners para drag and drop
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
+    // Event listeners para drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+        addFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        addFiles(files);
+    });
+
+    function addFiles(files) {
+        files.forEach(file => {
+            if (!selectedFiles.find(f => f.name === file.name)) {
+                selectedFiles.push(file);
+            }
         });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
+        updateFileList();
+        updateProcessButton();
+    }
+    
+    function updateFileList() {
+        fileList.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                <div>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remover</button>
+                </div>
+            `;
+            fileList.appendChild(fileItem);
         });
+    }
+    
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        fileInput.value = null; // Reinicia o input ao remover
+        updateFileList();
+        updateProcessButton();
+    }
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
-            addFiles(files);
-        });
+    function updateProcessButton() {
+        processBtn.disabled = selectedFiles.length === 0;
+    }
 
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            addFiles(files);
-        });
-
-        function addFiles(files) {
-            files.forEach(file => {
-                if (!selectedFiles.find(f => f.name === file.name)) {
-                    selectedFiles.push(file);
-                }
-            });
-            updateFileList();
-            updateProcessButton();
-        }
+    async function debugFile(index) {
+        const file = selectedFiles[index];
+        if (!file) return;
         
-        function updateFileList() {
-            fileList.innerHTML = '';
-            selectedFiles.forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                    <div>
-                 <!--   <button class="debug-btn" onclick="debugFile(${index})">Debug</button> -->
-                        <button class="remove-btn" onclick="removeFile(${index})">Remover</button>
-                    </div>
-                `;
-                fileList.appendChild(fileItem);
-            });
-        }
-        
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            updateFileList();
-            updateProcessButton();
-        }
-
-        function updateProcessButton() {
-            processBtn.disabled = selectedFiles.length === 0;
-        }
-
-        async function debugFile(index) {
-            const file = selectedFiles[index];
-            if (!file) return;
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
             
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                const response = await fetch('/api/debug-file', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                const debugInfo = `
+            const response = await fetch('/api/debug-file', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            const debugInfo = `
 Debug Info para: ${file.name}
 =====================================
 Filename: ${data.filename}
@@ -128,14 +128,14 @@ Identified Bank: ${data.identified_bank || 'N/A'}
 Text Length: ${data.text_length || 0}
 Read PDF Error: ${data.read_pdf_error || 'N/A'}
 Error: ${data.error || 'N/A'}
-                `;
-                
-                results.innerHTML = `<div class="results warning"><h3>🔍 Debug Info</h3><div class="debug-info">${debugInfo}</div></div>`;
-                
-            } catch (error) {
-                results.innerHTML = `<div class="results error"><h3>❌ Erro no Debug</h3><p>${error.message}</p></div>`;
-            }
+            `;
+            
+            results.innerHTML = `<div class="results warning"><h3>🔍 Debug Info</h3><div class="debug-info">${debugInfo}</div></div>`;
+            
+        } catch (error) {
+            results.innerHTML = `<div class="results error"><h3>❌ Erro no Debug</h3><p>${error.message}</p></div>`;
         }
+    }
 
     async function processFiles() {
         if (selectedFiles.length === 0) return;
@@ -217,7 +217,18 @@ Error: ${data.error || 'N/A'}
         }
         
         processBtn.disabled = false;
+        fileInput.value = null; // Reinicia o input
+        selectedFiles = []; // Limpa a lista de arquivos
+        fileList.innerHTML = ''; // Limpa a lista visual
     }
-    </script>
+
+    function resetForm() {
+        selectedFiles = [];
+        fileInput.value = null;
+        fileList.innerHTML = '';
+        results.innerHTML = '';
+        processBtn.disabled = true;
+    }
+</script>
 </body>
 </html>

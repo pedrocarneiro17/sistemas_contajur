@@ -50,9 +50,10 @@ def upload_files():
         # Carregar o primeiro CSV
         df1 = pd.read_csv(tmp_csv1_path, header=None, encoding='latin1', sep=';')
         try:
-            df2 = pd.read_csv(tmp_csv2_path, header=0, encoding='latin1', sep=';', on_bad_lines='skip')
+            # Carregar o segundo CSV, ignorando as duas primeiras linhas e usando a terceira como cabeçalho
+            df2 = pd.read_csv(tmp_csv2_path, skiprows=2, encoding='latin1', sep=';', on_bad_lines='skip')
         except pd.errors.ParserError:
-            df2 = pd.read_csv(tmp_csv2_path, header=0, encoding='latin1', sep=',', on_bad_lines='skip')
+            df2 = pd.read_csv(tmp_csv2_path, skiprows=2, encoding='latin1', sep=',', on_bad_lines='skip')
 
         # Filtrar o primeiro CSV para linhas onde a coluna de status (índice 3) é "D"
         df1_filtered = df1[df1.iloc[:, 3] == 'D']
@@ -62,7 +63,11 @@ def upload_files():
         # Criar um dicionário de tuplas (date, value) para busca eficiente
         matches_dict = dict(zip(df1_filtered['value'], df1_filtered['date']))
 
-        # Filtrar o segundo CSV para linhas com valores numéricos na coluna 9
+        # Localizar a coluna "Valor parcela" no CSV2
+        if 'Valor parcela' not in df2.columns:
+            return "Erro: A coluna 'Valor parcela' é obrigatória no CSV2.", 400
+
+        # Filtrar o segundo CSV para linhas com valores numéricos na coluna "Valor parcela"
         def is_numeric_value(value):
             try:
                 float(str(value).replace('.', '').replace(',', '.'))
@@ -70,8 +75,8 @@ def upload_files():
             except ValueError:
                 return False
 
-        df2_filtered = df2[df2.iloc[:, 9].apply(is_numeric_value)]
-        df2_filtered['value'] = df2_filtered.iloc[:, 9].apply(lambda x: float(str(x).replace('.', '').replace(',', '.')))
+        df2_filtered = df2[df2['Valor parcela'].apply(is_numeric_value)]
+        df2_filtered['value'] = df2_filtered['Valor parcela'].apply(lambda x: float(str(x).replace('.', '').replace(',', '.')))
 
         # Encontrar correspondências
         correspondencias = []

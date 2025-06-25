@@ -79,7 +79,7 @@ def identificar_banco(text):
         return "Banco Inter"
     
     # Itaú (variações)
-    if '8119' in text or '1472' in text or '3116' in text:
+    if '8119' in text or '1472' in text or '3116' in text or '1300' in text:
         first_line = linhas[0].strip().lower()
         if re.match(r"^\s*extrato\s+mensal", first_line):
             return "Itaú3"

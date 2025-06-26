@@ -105,7 +105,7 @@ def upload_files():
 
         # Gerar relatório
         with open(tmp_report_path, 'w', encoding='utf-8') as f:
-            # Primeira parte: Transações Encontradas
+            # Primeira parte: Boletos Pagos
             f.write("Boletos pagos:\n\n")
             for data, descricao, valor in correspondencias:
                 f.write(f"Data: {data.strftime('%d/%m/%Y')}, Descrição: {descricao}, Valor: {valor:.2f}\n")

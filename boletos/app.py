@@ -19,7 +19,9 @@ def boletos():
 @boletos_bp.route('/upload', methods=['POST'])
 def upload_files():
     """
-    Endpoint para processar dois arquivos CSV e retornar o relatório gerado
+    Endpoint para processar dois arquivos CSV e retornar o relatório gerado.
+    Inclui: 1) Correspondências entre CSVs baseado no valor com data e descrição do CSV1.
+            2) Boletos sem correspondência no CSV1 com palavras-chave específicas.
     """
     tmp_csv1_path = None
     tmp_csv2_path = None
@@ -60,8 +62,8 @@ def upload_files():
         df1_filtered['date'] = pd.to_datetime(df1_filtered.iloc[:, 0], format='%d/%m/%Y', errors='coerce')
         df1_filtered['value'] = df1_filtered.iloc[:, 2].apply(lambda x: float(str(x).replace('.', '').replace(',', '.')))
 
-        # Criar um dicionário de tuplas (date, value) para busca eficiente
-        matches_dict = dict(zip(df1_filtered['value'], df1_filtered['date']))
+        # Criar um dicionário de tuplas (date, description, value) para busca eficiente
+        matches_dict = dict(zip(df1_filtered['value'], zip(df1_filtered['date'], df1_filtered.iloc[:, 1])))
 
         # Localizar a coluna "Valor parcela" no CSV2
         if 'Valor parcela' not in df2.columns:
@@ -83,14 +85,40 @@ def upload_files():
         for index, row in df2_filtered.iterrows():
             value = row['value']
             if value in matches_dict:
-                correspondencias.append((matches_dict[value], value))
+                date, description = matches_dict[value]
+                correspondencias.append((date, description, value))
+
+        # Filtrar transações do CSV1 com palavras-chave na descrição (coluna 1)
+        palavras_chave = ['DÉB. TIT. COBRANÇA', 'DÉB.TIT.COB.EFETIV', 'boleto', 'Boleto', 'BOLETO']
+        df1_boletos = df1_filtered[df1_filtered.iloc[:, 1].str.contains('|'.join(palavras_chave), case=False, na=False)]
+
+        # Identificar boletos sem correspondência
+        boletos_sem_correspondencia = []
+        for index, row in df1_boletos.iterrows():
+            value = row['value']
+            if value not in df2_filtered['value'].values:
+                boletos_sem_correspondencia.append({
+                    'Data': row['date'].strftime('%d/%m/%Y'),
+                    'Descrição': row[1],
+                    'Valor': value
+                })
 
         # Gerar relatório
         with open(tmp_report_path, 'w', encoding='utf-8') as f:
-            f.write("Transações Encontradas nos Dois CSVs (baseado no valor com data do CSV1)\n\n")
-            for data, valor in correspondencias:
-                f.write(f"Data: {data.strftime('%d/%m/%Y')}, Valor: {valor:.2f}\n")
-            f.write(f"\nTotal de correspondências encontradas: {len(correspondencias)}")
+            # Primeira parte: Transações Encontradas
+            f.write("Boletos pagos:\n\n")
+            for data, descricao, valor in correspondencias:
+                f.write(f"Data: {data.strftime('%d/%m/%Y')}, Descrição: {descricao}, Valor: {valor:.2f}\n")
+            f.write(f"\nTotal de correspondências encontradas: {len(correspondencias)}\n")
+
+            # Segunda parte: Boletos sem correspondência
+            f.write("\nBoletos sem correspondência:\n\n")
+            if boletos_sem_correspondencia:
+                for boleto in boletos_sem_correspondencia:
+                    f.write(f"Data: {boleto['Data']}, Descrição: {boleto['Descrição']}, Valor: {boleto['Valor']:.2f}\n")
+            else:
+                f.write("Nenhum boleto sem correspondência encontrado.\n")
+            f.write(f"\nTotal de boletos sem correspondência: {len(boletos_sem_correspondencia)}")
 
         return send_file(
             tmp_report_path,

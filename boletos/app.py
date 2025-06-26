@@ -89,7 +89,7 @@ def upload_files():
                 correspondencias.append((date, description, value))
 
         # Filtrar transações do CSV1 com palavras-chave na descrição (coluna 1)
-        palavras_chave = ['DÉB. TIT. COBRANÇA', 'DÉB.TIT.COB.EFETIV', 'boleto', 'Boleto', 'BOLETO']
+        palavras_chave = ['DÉB. TIT. COBRANÇA', 'DÉB.TIT.COB.EFETIV', 'DÉB.TIT.COMPE.EFETI', 'SIPAG FORNECEDORES', 'PAGTO ELETRON', 'boleto', 'Boleto', 'BOLETO', 'DÉB.PGTO.BOLETO INT']
         df1_boletos = df1_filtered[df1_filtered.iloc[:, 1].str.contains('|'.join(palavras_chave), case=False, na=False)]
 
         # Identificar boletos sem correspondência

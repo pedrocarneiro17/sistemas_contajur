@@ -173,8 +173,8 @@ def process_extracts():
                             'error': f"Erro ao ler PDF '{file.filename}': {str(pdf_error)}"
                         })
                         continue
-                    
-                    if identified_bank in ['Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 
+
+                    if identified_bank in ['Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone',
                                          'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago']:
                         try:
                             file.seek(0)

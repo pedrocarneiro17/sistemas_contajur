@@ -67,14 +67,16 @@ def preprocess_text(text):
                 pass  # Mantém valor_formatado como está
         # Descrição é tudo entre data e valor
         descricao = ' '.join(transacao[1:-1]) if len(transacao) > 2 else (transacao[1] if len(transacao) == 2 else '')
-        # Filtra transações com descrição 'conta corrente'
-        if descricao.lower() != 'conta corrente':
-            transactions.append({
-                "Data": data,
-                "Descrição": descricao,
-                "Valor": valor_formatado,
-                "Tipo": tipo
-            })
+        # Filtra transações com descrições indesejadas
+        desc_lower = descricao.lower()
+        if any(termo in desc_lower for termo in ['conta corrente', 'saldo total', 'saldo aplic automatica']):
+            return
+        transactions.append({
+            "Data": data,
+            "Descrição": descricao,
+            "Valor": valor_formatado,
+            "Tipo": tipo
+        })
     
     for line in transaction_lines:
         # Verifica se a linha é uma data (início de nova transação)

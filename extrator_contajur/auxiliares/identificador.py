@@ -70,7 +70,7 @@ def identificar_banco(text):
         "SISTEMA DE COOPERATIVAS DE CRÉDITO DO BRASIL" in text):
         return "Sicoob2"
     
-    if palavras and palavras[0].lower().startswith('sicoob') or ' SICOOB CREDIMEPI' in text:
+    if (palavras and palavras[0].lower().startswith('sicoob') or 'SICOOB CREDIMEPI' in text) or 'SICOOBCREDIMEPI' in text:
         return "Sicoob1"
 
     

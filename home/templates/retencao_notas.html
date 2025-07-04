@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retenção de Notas - Contajur</title>
+    <!-- Link para o CSS. Crie este arquivo na pasta static/ -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='retencao.css') }}">
+</head>
+<body>
+    <!-- Botão Voltar -->
+    <a href="{{ url_for('index') }}" class="back-btn">Voltar</a>
+
+    <!-- Elementos flutuantes de fundo (se você tiver CSS para eles) -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+        <h1>Relatório de Retenção de Notas</h1>
+        <p>Arraste e solte seus arquivos PDF aqui, ou clique na área abaixo para selecionar.</p>
+        
+        <!-- Seção para Upload de PDFs -->
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Arraste e solte arquivos PDF aqui ou</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Selecionar Arquivos</button>
+            <input type="file" id="fileInput" class="file-input" multiple accept=".pdf">
+        </div>
+        
+        <!-- Lista de arquivos selecionados -->
+        <div class="file-list" id="fileList"></div>
+        
+        <!-- Botão de processamento -->
+        <button class="process-btn" id="processBtn" onclick="processFiles()" disabled>Gerar Relatório</button>
+        
+        <!-- Área de loading -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processando arquivos...</p>
+        </div>
+        
+        <!-- Área de resultados -->
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let selectedFiles = []; // Array para armazenar múltiplos arquivos selecionados
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        // Event listeners para drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+            addFiles(files);
+        });
+
+        // Event listener para seleção de arquivos via input
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            addFiles(files);
+        });
+
+        // Função para adicionar arquivos à lista (evita duplicatas por nome)
+        function addFiles(files) {
+            files.forEach(file => {
+                // Adiciona apenas se o arquivo não estiver já na lista (comparando pelo nome)
+                if (!selectedFiles.find(f => f.name === file.name)) {
+                    selectedFiles.push(file);
+                }
+            });
+            updateFileList();
+            updateProcessButton();
+        }
+        
+        // Função para atualizar a exibição da lista de arquivos
+        function updateFileList() {
+            fileList.innerHTML = ''; // Limpa a lista atual
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    <div>
+                        <button class="remove-btn" onclick="removeFile(${index})">Remover</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        // Função para remover um arquivo da lista
+        function removeFile(index) {
+            selectedFiles.splice(index, 1); // Remove o arquivo do array
+            fileInput.value = null; // Reinicia o input para permitir re-seleção do mesmo arquivo
+            updateFileList();
+            updateProcessButton();
+        }
+
+        // Função para habilitar/desabilitar o botão de processar
+        function updateProcessButton() {
+            processBtn.disabled = selectedFiles.length === 0;
+        }
+
+        // Função principal para processar os arquivos
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                alert('Por favor, selecione pelo menos um arquivo PDF.');
+                return;
+            }
+            
+            loading.style.display = 'block'; // Mostra o spinner de loading
+            results.innerHTML = ''; // Limpa resultados anteriores
+            processBtn.disabled = true; // Desabilita o botão de processar
+            
+            try {
+                const formData = new FormData();
+                selectedFiles.forEach(file => {
+                    formData.append('pdfs', file); // Anexa cada arquivo PDF com o nome 'pdfs'
+                });
+                
+                // Envia os arquivos para o endpoint Flask
+                const response = await fetch('/retencao_notas/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // Se a resposta for OK, baixa o arquivo de relatório
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'relatorio_notas_fiscais.txt'; // Nome do arquivo a ser baixado
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url); // Libera a URL do objeto Blob
+                    
+                    results.innerHTML = `
+                        <div class="results success">
+                            <h3>✅ Relatório Gerado!</h3>
+                            <p>O arquivo relatorio_notas_fiscais.txt foi baixado.</p>
+                        </div>
+                    `;
+                } else {
+                    // Se houver um erro na resposta do servidor
+                    const errorText = await response.text();
+                    results.innerHTML = `
+                        <div class="results error">
+                            <h3>❌ Erro no Processamento</h3>
+                            <p>${errorText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                // Erros de rede ou outros erros na requisição
+                console.error('Erro na requisição:', error);
+                results.innerHTML = `
+                    <div class="results error">
+                        <h3>❌ Erro de Conexão</h3>
+                        <p>Não foi possível conectar com o servidor.</p>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none'; // Esconde o spinner
+                processBtn.disabled = false; // Reabilita o botão
+                resetForm(); // Limpa o formulário após o processamento
+            }
+        }
+
+        // Função para resetar o formulário
+        function resetForm() {
+            selectedFiles = [];
+            fileInput.value = null; // Limpa o input de arquivo
+            fileList.innerHTML = ''; // Limpa a lista visual
+            results.innerHTML = ''; // Limpa os resultados
+            updateProcessButton(); // Atualiza o estado do botão de processar
+        }
+
+        // Inicializa o estado do botão ao carregar a página
+        updateProcessButton();
+    </script>
+</body>
+</html>

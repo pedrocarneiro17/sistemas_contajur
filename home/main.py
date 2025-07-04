@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from extrator_contajur.app import extrator_bp
 from conferencia_notas.app import conferencia_bp
 from boletos.app import boletos_bp
+from retencao_notas.app import retencao_bp
 
 # Configurar o Flask
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +25,8 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 # Registrar Blueprints
 app.register_blueprint(extrator_bp)
 app.register_blueprint(conferencia_bp)
-app.register_blueprint(boletos_bp)
+app.register_blueprint(boletos_bp) 
+app.register_blueprint(retencao_bp)
 
 # Rota principal
 @app.route('/')

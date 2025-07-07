@@ -53,7 +53,7 @@ def identificar_banco(text):
         return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
     
     # Sicredi
-    if '0179' in text and 'Sicredi Fone' in text:
+    if ('0179' in text or '0651' in text) and 'Sicredi Fone' in text:
         return "Sicredi"
     
     # PagBank

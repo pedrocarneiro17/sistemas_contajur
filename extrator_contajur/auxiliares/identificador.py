@@ -28,6 +28,14 @@ def identificar_banco(text):
     if 'Efí S.A.' in text and 'Filtros do' in text:
         return "Efi2"
     
+        # Sicredi
+    if 'Sicredi Fone' in text:
+        return "Sicredi"
+    
+    # PagBank
+    if 'PagSeguro Internet S/A' in text:
+        return "PagBank"
+    
     # Santander
     if 'Agência: 3472' in text or 'Agência: 3222' in text:
         return "Santander1"
@@ -38,58 +46,12 @@ def identificar_banco(text):
     # Caixa
     if 'Sujeito a alteração até o final do expediente bancário' in text or 'Os lançamentos de extrato não estão disponíveis' in text or 'SAC CAIXA' in text:
         return "Caixa"
-    
 
     # Stone
     if len(linhas) >= 3 and 'Instituição Stone Instituição' in linhas[2].strip():
         return "Stone"
-
-    # Bradesco
-    if '00632' in text:
-        return "Bradesco"
     
-    # Banco do Brasil (variações)
-    if '473-1' in text:
-        return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
-    
-    # Sicredi
-    if ('0179' in text or '0651' in text) and 'Sicredi Fone' in text:
-        return "Sicredi"
-    
-    # PagBank
-
-    if 'PagSeguro Internet S/A' in text:
-        return "PagBank"
-    
-    # Sicoob (variações)
-    
-    if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text:
-        return "Sicoob3"
-
-    if (linhas and "Sicoob | Internet Banking" in linhas[0].strip() and 
-        "SISTEMA DE COOPERATIVAS DE CRÉDITO DO BRASIL" in text):
-        return "Sicoob2"
-    
-    if (palavras and palavras[0].lower().startswith('sicoob') or 'SICOOB CREDIMEPI' in text) or 'SICOOBCREDIMEPI' in text:
-        return "Sicoob1"
-
-    
-    # Banco Inter 
-    if len(linhas) >= 3 and 'Banco Inter' in linhas[2]:
-        return "Banco Inter"
-    
-    # Itaú (variações)
-    if '8119' in text or '1472' in text or '3116' in text or '1300' in text:
-        first_line = linhas[0].strip().lower()
-        if re.match(r"^\s*extrato\s+mensal", first_line):
-            return "Itaú3"
-        if 'dados gerais' in first_line:
-            for linha in linhas:
-                if re.match(r"^\d{2}/\d{2}/\d{4}$", linha.strip()):
-                    return "Itaú2"
-        return "Itaú"
-    
-    # iFood
+        # iFood
     if 'Extrato da Conta Digital iFood' in text:
         return "iFood"
     
@@ -108,5 +70,39 @@ def identificar_banco(text):
     # InfinitePay
     if 'ajuda@infinitepay.io' in text:
         return "InfinitePay"
+
+    # Bradesco
+    if '00632' in text:
+        return "Bradesco"
+    
+    # Banco do Brasil (variações)
+    if '473-1' in text:
+        return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
+    
+    # Sicoob (variações)
+    if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text:
+        return "Sicoob3"
+
+    if (linhas and "Sicoob | Internet Banking" in linhas[0].strip() and 
+        "SISTEMA DE COOPERATIVAS DE CRÉDITO DO BRASIL" in text):
+        return "Sicoob2"
+    
+    if (palavras and palavras[0].lower().startswith('sicoob') or 'SICOOB CREDIMEPI' in text) or 'SICOOBCREDIMEPI' in text:
+        return "Sicoob1"
+    
+    # Banco Inter 
+    if len(linhas) >= 3 and 'Banco Inter' in linhas[2]:
+        return "Banco Inter"
+    
+    # Itaú (variações)
+    if '8119' in text or '1472' in text or '3116' in text or '1300' in text:
+        first_line = linhas[0].strip().lower()
+        if re.match(r"^\s*extrato\s+mensal", first_line):
+            return "Itaú3"
+        if 'dados gerais' in first_line:
+            for linha in linhas:
+                if re.match(r"^\d{2}/\d{2}/\d{4}$", linha.strip()):
+                    return "Itaú2"
+        return "Itaú"
 
     return "Banco não identificado"

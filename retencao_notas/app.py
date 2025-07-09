@@ -62,7 +62,9 @@ def process_pdf_with_gemini(pdf_text):
         "Analise o seguinte texto de nota fiscal em português e extraia as seguintes informações:\n"
         "1. O nome da empresa (Prestador de Serviços ou Tomador de Serviços, o mais relevante para a nota).\n"
         "2. Uma lista de todas as retenções mencionadas, com seus respectivos valores. "
-        "Procure por termos como 'Retenções Federais', 'ISS Retido na Fonte', 'Valor ISS', 'Valor Retido IR', 'INSS', 'CSLL', 'IRRF', 'COFINS', 'PIS/PASEP', 'Outras retenções' e seus valores correspondentes.\n\n"
+        "Procure por termos como 'Retenções Federais', 'ISS Retido na Fonte', 'Valor ISS', 'Valor Retido IR', 'INSS', 'CSLL', 'IRRF', 'COFINS', 'PIS/PASEP', Base de Cálculo de ISSQN 'Outras retenções' e seus valores correspondentes.\n\n"
+        "3. Caso em uma nota encontrar valor ISS, mas tiver Situação Tributária do ISSQN: Normal, considerar que não há retenção de ISS.\n\n"
+        "4. Caso encontrar Base de Cálculo de ISSQN, e valor de ISSQN, subtraia o valor de ISSQN da Base de Cálculo e retorne o valor subtraído no item Base de Cálculo de ISSQN.\n\n"
         "Texto da Nota Fiscal:\n"
         f"{pdf_text}"
     )

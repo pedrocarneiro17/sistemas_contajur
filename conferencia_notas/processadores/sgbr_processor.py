@@ -112,9 +112,6 @@ def process_sgbr_pdf(texto_completo):
     # Remover linhas duplicadas com base na coluna 'Número', mantendo a primeira ocorrência
     df = df.drop_duplicates(subset=['Número'], keep='first')
     
-    # Substituir 'nan' por ' ' no DataFrame inteiro para consistência
-    df = df.replace(['nan', 'NaN'], ' ')
-    
     # Gerar Excel em memória
     output = BytesIO()
     df.to_excel(output, index=False, engine='openpyxl')

@@ -8,15 +8,16 @@ def process_sgbr_pdf(texto_completo):
     adiciona números ausentes, remove linhas duplicadas com base na coluna Número (mantendo a primeira)
     após ajustar toda a tabela, formata a coluna Total nota para usar vírgula como decimal,
     sem pontos nas casas de milhar, remove ,00 e zeros à direita, e remove R$ se presente,
-    retornando um arquivo Excel em memória.
+    retornando um arquivo Excel em memória. Formata 'NaN' para ' '.
     """
     dados = []
     
     # Padrões regex para identificação das colunas
-    numero_pattern = r'^\d{5}$'  # Exatamente 5 dígitos para Número (ajustado conforme dados)
+    numero_pattern = r'^\d{5}$'  # Exatamente 5 dígitos para Número
     modelo_pattern = r'^\d{2}$'  # Exatamente 2 dígitos para Modelo
     serie_pattern = r'^\d$'      # Exatamente 1 dígito para Série
-    data_pattern = r'^\d{2}/\d{2}/\d{4}$'  # DD/MM/YYYY
+    # Ajustado para aceitar DD/MM/YYYY ou 0001:/0006:/020025
+    data_pattern = r'^(?:\d{2}/\d{2}/\d{4}|\d{4}:/\d{4}:/\d{6})$'
     total_pattern = r'^(?:R\$)?\d{1,3}(?:[,\.]\d{2})$'  # e.g., R$47,00, 293,80, aceita R$ opcional
     
     # Filtrar linhas indesejadas
@@ -76,10 +77,10 @@ def process_sgbr_pdf(texto_completo):
         numeros_presentes = set(df['Número'])
         numeros_ausentes = todos_numeros - numeros_presentes
         
-        # Adicionar linhas para números ausentes com NaN
+        # Adicionar linhas para números ausentes com espaço em branco
         for numero in numeros_ausentes:
-            dados.append([f'{numero:05d}', 'NaN', 'NaN', 'NaN', 'NaN', 'NaN'])
-
+            dados.append([f'{numero:05d}', ' ', ' ', ' ', ' ', ' '])
+    
     # Recriar DataFrame com números ausentes
     df = pd.DataFrame(dados, columns=colunas)
     
@@ -90,8 +91,8 @@ def process_sgbr_pdf(texto_completo):
     
     # Formatar a coluna 'Total nota' para remover ,00 e zeros à direita, usar vírgula como decimal, sem pontos nas casas de milhar
     def formatar_valor(valor):
-        if pd.isna(valor):
-            return 'NaN'  # Substituir NaN por NaN com letra maiúscula
+        if valor == ' ':  # Se for espaço em branco, manter como está
+            return ' '
         # Remover pontos de milhar e substituir vírgula por ponto para conversão numérica
         valor = valor.replace('.', '').replace(',', '.')
         try:
@@ -108,11 +109,11 @@ def process_sgbr_pdf(texto_completo):
     
     df['Total nota'] = df['Total nota'].apply(formatar_valor)
     
-    # Remover linhas duplicadas com base na coluna 'Número', mantendo a primeira ocorrência, após ajustar a tabela
+    # Remover linhas duplicadas com base na coluna 'Número', mantendo a primeira ocorrência
     df = df.drop_duplicates(subset=['Número'], keep='first')
     
-    # Substituir todos os 'nan' por 'NaN' no DataFrame inteiro para consistência
-    df = df.replace('nan', 'NaN')
+    # Substituir 'nan' por ' ' no DataFrame inteiro para consistência
+    df = df.replace(['nan', 'NaN'], ' ')
     
     # Gerar Excel em memória
     output = BytesIO()

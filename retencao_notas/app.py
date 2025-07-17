@@ -39,9 +39,10 @@ def process_pdf_with_gemini(pdf_text):
         "4. Inclua 'Valor do ISS Devido (R$)' como retenção se 'Valor do ISS Retido (R$)' for 0 ou ausente.\n"
         "5. Se houver 'Base de Cálculo de ISSQN' e 'Valor do ISS' ou 'Valor do ISS Devido (R$)', subtraia o valor de ISS da Base de Cálculo e inclua como 'Base de Cálculo de ISSQN' se maior que 0.\n"
         "6. Se o valor de uma retenção for 0,00 não inclua ela na lista.\n"
-        "7. Remova prefixos como 'R$' ou '(R$)' dos valores, mantendo o formato original (ex.: '123,45').\n"
-        "8. Se não houver retenções, retorne 'Nenhuma retenção encontrada'.\n"
-        "9. Não invente valores ou retenções.\n"
+        "7. Caso identifique '-', considere como um valor, que é 0 no caso.\n"
+        "8. Remova prefixos como 'R$' ou '(R$)' dos valores, mantendo o formato original (ex.: '123,45').\n"
+        "9. Se não houver retenções, retorne 'Nenhuma retenção encontrada'.\n"
+        "10. Não invente valores ou retenções.\n"
         f"Texto da Nota Fiscal:\n{pdf_text}"
     )
 

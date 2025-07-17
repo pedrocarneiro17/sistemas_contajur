@@ -58,8 +58,8 @@ def preprocess_text(text):
                 descricao = ' '.join(transacao_atual).strip().replace('\n', ' ').replace('\r', ' ')
                 # Lista de palavras-chave para tipo 'C' (crédito)
                 credit_keywords = ['recebimento', 'venda na', 'pix recebido']
-                # Verifica se alguma palavra-chave está na descrição
-                is_credit = any(keyword in descricao.lower() for keyword in credit_keywords)
+                # Verifica se é uma transação de crédito, mas não uma tarifa
+                is_credit = any(keyword in descricao.lower() for keyword in credit_keywords) and 'tarifa' not in descricao.lower()
                 tipo = 'C' if is_credit else 'D'
                 transacoes.append({
                     "Data": data_atual,

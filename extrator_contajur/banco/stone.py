@@ -42,7 +42,7 @@ def preprocess_text(text):
     
     # Processar transações e separar em variáveis
     date_pattern = r"^\d{2}/\d{2}/\d{4}$"
-    value_pattern = r"^\d{1,3}(?:\.\d{3})*,\d{2}$"
+    value_pattern = r"^-?\d{1,3}(?:\.\d{3})*,\d{2}$"
     type_keywords = ["Débito", "Crédito"]
     
     transactions = []
@@ -62,7 +62,7 @@ def preprocess_text(text):
             else:
                 continue  # Se não encontrar o tipo, pular para próxima data
             
-            # Coletar a descrição até encontrar o valor
+            # Coletar a descrição até encontrar o valor ou outra informação
             descricao = []
             valor = None
             while i < len(linhas_intermediarias):
@@ -81,7 +81,7 @@ def preprocess_text(text):
             # Se encontrou o valor, formar a transação
             if valor:
                 # Juntar a descrição em uma única string
-                descricao_texto = " ".join(descricao).strip()
+                descricao_texto = " ".join(descricao).strip() if descricao else ""
                 
                 # Ajustar valor: remover apenas o sinal de menos e manter formato com vírgula
                 valor_ajustado = valor.replace("-", "").strip()

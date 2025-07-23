@@ -1,5 +1,6 @@
 Flask
 Flask-CORS
+werkzeug
 pdfplumber
 PyMuPDF
 pandas

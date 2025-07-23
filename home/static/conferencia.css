@@ -1,291 +1,48 @@
-/* Importar fontes usadas */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+/* Estilos da página Conferência, adaptados para Bootstrap */
 
-body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    padding: 20px 0;
-}
-
-/* Fundo animado */
-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
-    z-index: -1;
-    animation: float 20s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(1deg); }
-}
-
-/* Efeito de partículas flutuantes */
-.floating-elements {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.floating-element {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: rgba(255,255,255,0.6);
-    border-radius: 50%;
-    animation: floatUp 15s infinite linear;
-}
-
-.floating-element:nth-child(1) { left: 10%; animation-delay: 0s; }
-.floating-element:nth-child(2) { left: 20%; animation-delay: 2s; }
-.floating-element:nth-child(3) { left: 30%; animation-delay: 4s; }
-.floating-element:nth-child(4) { left: 40%; animation-delay: 6s; }
-.floating-element:nth-child(5) { left: 50%; animation-delay: 8s; }
-.floating-element:nth-child(6) { left: 60%; animation-delay: 10s; }
-.floating-element:nth-child(7) { left: 70%; animation-delay: 12s; }
-.floating-element:nth-child(8) { left: 80%; animation-delay: 14s; }
-.floating-element:nth-child(9) { left: 90%; animation-delay: 16s; }
-
-@keyframes floatUp {
-    0% {
-        transform: translateY(100vh) scale(0);
-        opacity: 0;
-    }
-    10% {
-        opacity: 1;
-    }
-    90% {
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-100px) scale(1);
-        opacity: 0;
-    }
-}
-
-/* Container principal */
-.container { 
-    background: white; 
-    padding: 30px; 
-    border-radius: 10px; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-    max-width: 800px; 
-    margin: 0 auto; 
-    position: relative; 
-    z-index: 1;
-    overflow-y: auto;
-    max-height: 80vh;
-}
-
-/* Áreas de upload */
-.upload-area { 
-    border: 2px dashed #ccc; 
-    border-radius: 10px; 
-    padding: 40px; 
-    text-align: center; 
-    margin: 20px 0; 
-    background-color: #fafafa; 
-}
-
-.upload-area.dragover { 
-    border-color: #007bff; 
-    background-color: #e3f2fd; 
-}
-
-.file-input { 
-    display: none; 
-}
-
-.upload-btn { 
-    background: #007bff; 
-    color: white; 
-    padding: 10px 20px; 
-    border: none; 
-    border-radius: 5px; 
-    cursor: pointer; 
-    font-size: 16px; 
-}
-
-.upload-btn:hover { 
-    background: #0056b3; 
-}
-
-/* Botão de processamento */
-.process-btn { 
-    background: #28a745; 
-    color: white; 
-    padding: 12px 30px; 
-    border: none; 
-    border-radius: 5px; 
-    cursor: pointer; 
-    font-size: 16px; 
-    margin-top: 20px; 
-}
-
-.process-btn:hover { 
-    background: #1e7e34; 
-}
-
-.process-btn:disabled { 
-    background: #6c757d; 
-    cursor: not-allowed; 
-}
-
-/* Listas de arquivos */
-.file-list { 
-    margin: 10px 0; 
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-.file-item { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 10px; 
-    border: 1px solid #ddd; 
-    border-radius: 5px; 
-    margin: 5px 0; 
-    background: #f8f9fa; 
-}
-
-.remove-btn { 
-    background: #dc3545; 
-    color: white; 
-    border: none; 
-    padding: 5px 10px; 
-    border-radius: 3px; 
-    cursor: pointer; 
-}
-
-/* Área de loading */
-.loading { 
-    display: none; 
-    text-align: center; 
-    margin: 20px 0; 
-}
-
-.spinner { 
-    border: 4px solid #f3f3f3; 
-    border-top: 4px solid #3498db; 
-    border-radius: 50%; 
-    width: 40px; 
-    height: 40px; 
-    animation: spin 2s linear infinite; 
-    margin: 0 auto 10px; 
-}
-
-@keyframes spin { 
-    0% { transform: rotate(0deg); } 
-    100% { transform: rotate(360deg); } 
-}
-
-/* Área de resultados */
-.results { 
-    margin-top: 20px; 
-    padding: 20px; 
-    border-radius: 5px; 
-}
-
-.results.success { 
-    background: #e8f5e9; 
-    border: 1px solid #81c784; 
-}
-
-.results.error { 
-    background: #ffebee; 
-    border: 1px solid #ef9a9a; 
-}
-
-.results.neutral { 
-    background: #ffebee; 
-    border: 1px solid #ef9a9a; 
-}
-
-.results h3 {
-    margin: 0 0 10px;
-    font-size: 1.2em;
-}
-
-.results ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.results ul li {
-    margin: 5px 0;
-}
-
-/* Botão de download */
-.download-btn { 
-    background: #17a2b8; 
-    color: white; 
-    padding: 10px 20px; 
-    border: none; 
-    border-radius: 5px; 
-    cursor: pointer; 
-    text-decoration: none; 
-    display: inline-block; 
-    margin-top: 10px; 
-}
-
-.download-btn:hover { 
-    background: #138496; 
-}
-
-/* Botão Voltar */
-.back-btn {
+.top-buttons {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s ease;
+    display: flex;
+    gap: 10px;
     z-index: 10;
 }
 
-.back-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
+.upload-area {
+    border: 2px dashed var(--bs-border-color);
+    background-color: var(--bs-tertiary-bg);
+    transition: border-color 0.3s, background-color 0.3s;
 }
 
-.back-btn:hover::before {
-    left: 100%;
+.upload-area.dragover {
+    border-color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
 }
 
-.back-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+.file-list .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    margin-bottom: 0.5rem;
 }
+
+.file-item .remove-btn {
+    background: none;
+    border: none;
+    color: var(--bs-danger);
+    cursor: pointer;
+    padding: 0 0.5rem;
+    font-weight: bold;
+}
+
+.loading {
+    display: none; /* Controlado via JS */
+}
+
+/* O JavaScript agora deve adicionar as classes de alerta do Bootstrap na div #results, 
+   por exemplo: results.innerHTML = '<div class="alert alert-success">...</div>' */

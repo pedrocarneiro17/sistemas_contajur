@@ -3,221 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boletos - Contajur</title>
+    <title>Relatório de Boletos - Contajur</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared_styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='boletos.css') }}">
 </head>
-<body>
-    <!-- Botão Voltar -->
-    <a href="{{ url_for('index') }}" class="back-btn">Voltar</a>
+<body class="bg-body-tertiary">
 
-    <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
+    <div class="floating-elements"></div>
+
+    <div class="top-buttons">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            Voltar
+        </a>
+        <button id="theme-toggle" class="btn btn-outline-secondary"></button>
     </div>
 
-    <div class="container">
-        <h1>Relatório de Boletos</h1>
-        <p>Faça upload de dois arquivos CSV para gerar o relatório de transações.</p>
+    <div class="container py-5">
+        <div class="card shadow-sm p-4 p-md-5 mx-auto" style="max-width: 900px;">
+            <div class="text-center mb-4">
+                <h1 class="h3">Relatório de Boletos Pagos</h1>
+                <p class="text-body-secondary">Faça o upload dos dois arquivos CSV para gerar o relatório.</p>
+            </div>
 
-        <!-- Seção para Upload de CSVs -->
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-section">
-                <p class="upload-title">Faça upload do CSV do extrato bancário</p>
-                <div class="upload-box">
-                    <p>📄 CSV do Extrator</p>
-                    <button class="upload-btn" onclick="document.getElementById('extratorInput').click()">Selecionar Arquivo</button>
-                    <input type="file" id="extratorInput" class="file-input" accept=".csv" required>
-                    <div class="file-info" id="extratorFileInfo"></div>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <h2 class="h4 card-title text-center text-primary mb-3">CSV do Extrato</h2>
+                    <div class="upload-box text-center p-3 rounded" id="uploadBoxExtrator">
+                        <p class="small text-body-secondary">📊 Arraste um Excel aqui ou</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('extratorInput').click()">Selecionar</button>
+                        <input type="file" id="extratorInput" class="d-none" accept=".csv">
+                        <div class="file-info mt-2" id="extratorFileInfo"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2 class="h4 card-title text-center text-primary mb-3">CSV do Sistema</h2>
+                    <div class="upload-box text-center p-3 rounded" id="uploadBoxSistema">
+                        <p class="small text-body-secondary">📊 Arraste uma Excel aqui ou</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('sistemaInput').click()">Selecionar</button>
+                        <input type="file" id="sistemaInput" class="d-none" accept=".csv">
+                        <div class="file-info mt-2" id="sistemaFileInfo"></div>
+                    </div>
                 </div>
             </div>
-            <div class="upload-section">
-                <p class="upload-title">Faça upload do CSV do sistema</p>
-                <div class="upload-box">
-                    <p>📄 CSV do Sistema</p>
-                    <button class="upload-btn" onclick="document.getElementById('sistemaInput').click()">Selecionar Arquivo</button>
-                    <input type="file" id="sistemaInput" class="file-input" accept=".csv" required>
-                    <div class="file-info" id="sistemaFileInfo"></div>
-                </div>
+
+            <div class="d-grid">
+                <button class="btn btn-success btn-lg" id="processBtn" disabled>Gerar Relatório</button>
             </div>
-            <button class="process-btn" id="processBtn" onclick="processFiles()" disabled>Gerar Relatório</button>
-        </div>
 
-        <!-- Área de loading -->
-        <div class="loading" id="loading" style="display: none;">
-            <div class="spinner"></div>
-            <p>Processando arquivos...</p>
+             <div class="text-center mt-4">
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Processando...</p>
+                </div>
+                <div id="results" class="mt-3"></div>
+            </div>
         </div>
-
-        <!-- Área de resultados -->
-        <div id="results"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        let selectedFiles = { extrator: null, sistema: null };
-        const uploadArea = document.getElementById('uploadArea');
-        const extratorInput = document.getElementById('extratorInput');
-        const sistemaInput = document.getElementById('sistemaInput');
-        const processBtn = document.getElementById('processBtn');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        const extratorFileInfo = document.getElementById('extratorFileInfo');
-        const sistemaFileInfo = document.getElementById('sistemaFileInfo');
-
-        // Eventos para upload de CSV do Extrator
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707"/></svg>`;
+            const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162h1.212a.217.217 0 0 1 .162.321l-.988.81.397 1.15a.217.217 0 0 1-.312.222l-1.012-.662-1.012.662a.217.217 0 0 1-.312-.222l.397-1.15-.988-.81a.217.217 0 0 1 .162-.321h1.212zM13.379 5.79c-.086.244-.484.244-.57 0l-.195-.585a.217.217 0 0 1 .162-.321h.608a.217.217 0 0 1 .162.321z"/></svg>`;
+            const setTheme = (theme) => {
+                htmlEl.setAttribute('data-bs-theme', theme);
+                themeToggle.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+                localStorage.setItem('theme', theme);
+            };
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlEl.getAttribute('data-bs-theme');
+                setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
+            const storedTheme = localStorage.getItem('theme');
+            const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            setTheme(storedTheme || preferredTheme);
         });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'text/csv' || file.name.endsWith('.csv'));
-            if (files.length > 0) {
-                if (!selectedFiles.extrator) {
-                    selectedFiles.extrator = files[0];
-                    updateFileList('extrator');
-                } else if (!selectedFiles.sistema) {
-                    selectedFiles.sistema = files[0];
-                    updateFileList('sistema');
+    </script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let selectedFiles = { extrator: null, sistema: null };
+            const processBtn = document.getElementById('processBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const uploadConfig = {
+                extrator: {
+                    box: document.getElementById('uploadBoxExtrator'),
+                    input: document.getElementById('extratorInput'),
+                    info: document.getElementById('extratorFileInfo'),
+                },
+                sistema: {
+                    box: document.getElementById('uploadBoxSistema'),
+                    input: document.getElementById('sistemaInput'),
+                    info: document.getElementById('sistemaFileInfo'),
                 }
+            };
+            const setupUploadEvents = (type) => {
+                const config = uploadConfig[type];
+                config.box.addEventListener('dragover', (e) => { e.preventDefault(); config.box.classList.add('dragover'); });
+                config.box.addEventListener('dragleave', () => config.box.classList.remove('dragover'));
+                config.box.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    config.box.classList.remove('dragover');
+                    handleFile(e.dataTransfer.files[0], type);
+                });
+                config.input.addEventListener('change', (e) => handleFile(e.target.files[0], type));
+            };
+            setupUploadEvents('extrator');
+            setupUploadEvents('sistema');
+
+            function handleFile(file, type) {
+                if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+                    selectedFiles[type] = file;
+                } else if (file) {
+                    alert('Arquivo inválido. Por favor, selecione um arquivo .csv');
+                    selectedFiles[type] = null;
+                }
+                updateFileInfo(type);
                 updateProcessButton();
             }
-        });
 
-        extratorInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
-                if (!selectedFiles.extrator) {
-                    selectedFiles.extrator = file;
-                    updateFileList('extrator');
-                }
-            } else {
-                selectedFiles.extrator = null;
-                extratorFileInfo.innerHTML = 'Arquivo inválido. Selecione um CSV.';
-            }
-            updateProcessButton();
-        });
-
-        sistemaInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
-                if (!selectedFiles.sistema) {
-                    selectedFiles.sistema = file;
-                    updateFileList('sistema');
-                }
-            } else {
-                selectedFiles.sistema = null;
-                sistemaFileInfo.innerHTML = 'Arquivo inválido. Selecione um CSV.';
-            }
-            updateProcessButton();
-        });
-
-        function updateFileList(type) {
-            const fileInfo = type === 'extrator' ? extratorFileInfo : sistemaFileInfo;
-            fileInfo.innerHTML = selectedFiles[type] ? `
-                📄 ${selectedFiles[type].name} (<button class="remove-btn" onclick="removeFile('${type}')">Remover</button>)
-            ` : '';
-        }
-
-        function removeFile(type) {
-            selectedFiles[type] = null;
-            if (type === 'extrator') extratorInput.value = null; // Reinicia o input
-            if (type === 'sistema') sistemaInput.value = null; // Reinicia o input
-            updateFileList(type);
-            updateProcessButton();
-        }
-
-        function updateProcessButton() {
-            processBtn.disabled = !selectedFiles.extrator || !selectedFiles.sistema;
-        }
-
-        async function processFiles() {
-            if (!selectedFiles.extrator || !selectedFiles.sistema) {
-                alert('Por favor, selecione ambos os arquivos CSV (Extrator e Sistema).');
-                return;
-            }
-            
-            loading.style.display = 'block';
-            processBtn.disabled = true;
-
-            try {
-                const formData = new FormData();
-                formData.append('csv1', selectedFiles.extrator); // CSV do Extrator
-                formData.append('csv2', selectedFiles.sistema);  // CSV do Sistema
-                
-                const response = await fetch('/boletos/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'relatorio_boletos.txt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                    results.innerHTML = `
-                        <div class="results success">
-                            <h3>✅ Relatório Gerado!</h3>
-                            <p>O arquivo relatorio_boletos.txt foi baixado.</p>
-                        </div>
-                    `;
+            function updateFileInfo(type) {
+                const config = uploadConfig[type];
+                if (selectedFiles[type]) {
+                    config.info.innerHTML = `<span>${selectedFiles[type].name}</span><button class="remove-btn" data-type="${type}">✖</button>`;
                 } else {
-                    const errorText = await response.text();
-                    results.innerHTML = `
-                        <div class="results error">
-                            <h3>❌ Erro no Processamento</h3>
-                            <p>${errorText}</p>
-                        </div>
-                    `;
+                    config.info.innerHTML = '';
                 }
-            } catch (error) {
-                console.error('Erro na requisição:', error);
-                results.innerHTML = `
-                    <div class="results error">
-                        <h3>❌ Erro de Conexão</h3>
-                        <p>Não foi possível conectar com o servidor.</p>
-                        <p><strong>Erro:</strong> ${error.message}</p>
-                    </div>
-                `;
-            } finally {
-                loading.style.display = 'none';
-                processBtn.disabled = false;
-                selectedFiles.extrator = null;
-                selectedFiles.sistema = null;
-                extratorInput.value = null; // Reinicia o input
-                sistemaInput.value = null; // Reinicia o input
-                extratorFileInfo.innerHTML = '';
-                sistemaFileInfo.innerHTML = '';
             }
-        }
 
-        function resetForm() {
-            selectedFiles.extrator = null;
-            selectedFiles.sistema = null;
-            extratorInput.value = null;
-            sistemaInput.value = null;
-            extratorFileInfo.innerHTML = '';
-            sistemaFileInfo.innerHTML = '';
-            results.innerHTML = '';
-            processBtn.disabled = true;
-        }
+            // Usando delegação de eventos para os botões de remover
+            document.querySelector('.card').addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-btn')) {
+                    const type = e.target.dataset.type;
+                    selectedFiles[type] = null;
+                    uploadConfig[type].input.value = '';
+                    updateFileInfo(type);
+                    updateProcessButton();
+                }
+            });
+
+            function updateProcessButton() {
+                processBtn.disabled = !selectedFiles.extrator || !selectedFiles.sistema;
+            }
+
+            processBtn.addEventListener('click', async function() {
+                if (processBtn.disabled) return;
+                loading.style.display = 'block';
+                results.innerHTML = '';
+                processBtn.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('csv1', selectedFiles.extrator);
+                    formData.append('csv2', selectedFiles.sistema);
+                    const response = await fetch('/boletos/upload', { method: 'POST', body: formData });
+                    
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'relatorio_boletos.txt';
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        results.innerHTML = `<div class="alert alert-success"><strong>Relatório Gerado!</strong> O arquivo foi baixado com sucesso.</div>`;
+                    } else {
+                        const errorText = await response.text();
+                        results.innerHTML = `<div class="alert alert-danger"><strong>Erro:</strong> ${errorText}</div>`;
+                    }
+                } catch (error) {
+                    results.innerHTML = `<div class="alert alert-danger"><strong>Erro de Conexão:</strong> Não foi possível conectar ao servidor.</div>`;
+                } finally {
+                    loading.style.display = 'none';
+                    // Resetar o formulário
+                    selectedFiles = { extrator: null, sistema: null };
+                    uploadConfig.extrator.input.value = '';
+                    uploadConfig.sistema.input.value = '';
+                    updateFileInfo('extrator');
+                    updateFileInfo('sistema');
+                    updateProcessButton();
+                }
+            });
+        });
     </script>
 </body>
 </html>

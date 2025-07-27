@@ -33,7 +33,7 @@ def identificar_banco(text):
         return "Sicredi"
     
     # PagBank
-    if 'PagSeguro Internet S/A' in text:
+    if 'PagSeguro Internet S/A' in text or '290-PagSeguroInternetS/A' in text:
         return "PagBank"
     
     # Santander

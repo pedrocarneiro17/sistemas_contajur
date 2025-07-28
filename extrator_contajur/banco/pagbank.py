@@ -11,7 +11,7 @@ def preprocess_text(text):
     date_pattern = r"\d{2}/\d{2}/\d{4}"
 
     for line in lines:
-        if "saldo do dia" in line.lower():
+        if "saldo do dia" in line.lower() or "saldododia" in line.lower():
             continue
 
         if not re.match(rf"^{date_pattern}", line):

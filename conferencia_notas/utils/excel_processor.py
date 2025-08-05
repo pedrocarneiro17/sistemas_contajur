@@ -1,29 +1,26 @@
 import pandas as pd
+from io import BytesIO
 
-def remove_duplicatas_e_vazias_xls(arquivo_entrada, arquivo_saida):
+def remove_duplicatas_e_vazias_xls(excel_file_content):
+    """
+    Lê um conteúdo de arquivo Excel, remove duplicatas e vazias, e retorna
+    o DataFrame processado e uma lista dos documentos duplicados removidos.
+    """
     try:
-        # Lê o arquivo XLS usando xlrd (assumindo sempre .xls)
-        df = pd.read_excel(arquivo_entrada, engine='xlrd')
+        df = pd.read_excel(excel_file_content, engine='xlrd')
         
-        # Verifica se a coluna 'Nr. documento' existe
         if 'Nr. documento' not in df.columns:
             raise ValueError("A coluna 'Nr. documento' não foi encontrada no arquivo")
         
-        # Remove linhas completamente vazias
-        df = df.dropna(how='all')
+        df.dropna(how='all', inplace=True)
         
-        # Remove linhas duplicadas mantendo apenas a primeira ocorrência com base na coluna 'Nr. documento'
+        duplicatas = df[df.duplicated(subset=['Nr. documento'], keep='first')]
+        documentos_removidos = duplicatas['Nr. documento'].tolist()
+        
         df_sem_duplicatas = df.drop_duplicates(subset=['Nr. documento'], keep='first')
         
-        # Salva o resultado em um novo arquivo XLSX
-        df_sem_duplicatas.to_excel(arquivo_saida, index=False, engine='openpyxl')
+        # Retorna o DataFrame e a lista de documentos removidos
+        return df_sem_duplicatas, documentos_removidos
         
-        print(f"Arquivo processado com sucesso!")
-        print(f"Linhas duplicadas removidas: {len(df) - len(df_sem_duplicatas)}")
-        print(f"Linhas vazias removidas: {len(pd.read_excel(arquivo_entrada, engine='xlrd')) - len(df)}")
-        print(f"Resultado salvo em: {arquivo_saida}")
-        
-    except FileNotFoundError:
-        print(f"Erro: O arquivo {arquivo_entrada} não foi encontrado")
     except Exception as e:
-        print(f"Erro ao processar o arquivo: {str(e)}")
+        raise Exception(f"Erro ao processar o arquivo Excel: {str(e)}")

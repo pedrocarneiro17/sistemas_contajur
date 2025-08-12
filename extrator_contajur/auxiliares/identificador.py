@@ -37,7 +37,7 @@ def identificar_banco(text):
         return "PagBank"
     
     # Santander
-    if 'Agência: 3472' in text or 'Agência: 3222' in text:
+    if 'Agência: 3472' in text or 'Agência: 3222' in text or 'Agência: 3503' in  text:
         return "Santander1"
 
     if 'EXTRATOCONSOLIDADOINTELIGENTE' in text:

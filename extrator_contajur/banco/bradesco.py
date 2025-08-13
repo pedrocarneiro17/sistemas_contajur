@@ -1,25 +1,39 @@
 import re
+# A importação abaixo é relativa à estrutura do seu projeto
 from ..auxiliares.utils import process_transactions 
 
 def preprocess_text(text):
     """
     Pré-processa o texto do extrato do Bradesco para dividir transações, ignorando cabeçalho e rodapé.
-    Combina número do documento e descrição em uma única coluna Descrição.
-    Mantém valores no formato brasileiro (ex.: 1.012,29).
+    A descrição inclui todo o texto entre a data e o primeiro valor monetário, com palavras indesejadas removidas.
+    Usa apenas o primeiro valor monetário para Valor e Tipo (C/D). O segundo valor monetário (saldo) é descartado.
+    Remove palavras indesejadas como 'Dcto.', 'Crédito (R$)', 'Débito (R$)' e 'Saldo (R$)' da descrição.
+    Retorna uma lista de dicionários com Data, Descrição, Valor e Tipo (C/D).
     """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     
     # Palavras-chave para filtrar linhas irrelevantes
     palavras_ignorar = [
         'Folha', 'Nome do usuário',
-        'Data da operação', 'Saldos Invest Fácil', 'Os dados acima'
+        'Data da operação', 'Os dados acima'
+    ]
+    
+    # Palavras a serem removidas da descrição
+    palavras_remover_descricao = [
+        r'\bDcto\.\s*',              # Corresponde a "Dcto." com possíveis espaços
+        r'\bCrédito\s*\(R\$\)\s*',   # Corresponde a "Crédito (R$)" com espaços
+        r'\bDébito\s*\(R\$\)\s*',    # Corresponde a "Débito (R$)" com espaços
+        r'\bSaldo\s*\(R\$\)\s*',     # Corresponde a "Saldo (R$)" com espaços
+        r'\bÚltimos\s*Lançamentos\b',
+        r'\bData\b',
+        r'\bLançamento\b'
     ]
     
     # Padrões regex para identificar cabeçalhos/rodapés genéricos
     padroes_ignorar = [
         r'CNPJ:\s*\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}',  # CNPJ
-        r'AGENCIA:\s*\d{4}-\d',                       # Agência
-        r'CONTA:\s*\d+-\d',                           # Conta
+        r'AGENCIA:\s*\d{4}-\d',                      # Agência
+        r'CONTA:\s*\d+-\d',                          # Conta
         r'\d{2}/\d{2}/\d{4}\s*-\s*\d{2}/\d{2}/\d{4}' # Período (ex.: 01/04/2025 - 30/04/2025)
     ]
     
@@ -34,6 +48,7 @@ def preprocess_text(text):
     found_saldo_anterior = False
     current_transacao = []
     current_data = None
+    found_first_value = False  # Flag para rastrear se o primeiro valor monetário foi encontrado
     
     while i < len(lines):
         linha = lines[i].strip()
@@ -48,11 +63,11 @@ def preprocess_text(text):
             i += 2
             continue
         
-        # Verificar se a linha contém "Total" seguido de um valor monetário
-        if linha.startswith('Total') and i + 1 < len(lines):
+        # Parar ao encontrar "SALDO INVEST FÁCIL" e a próxima linha for um valor monetário
+        if 'SALDO INVEST FÁCIL' in linha and i + 1 < len(lines):
             proxima_linha = lines[i + 1].strip()
             if re.match(padrao_valor_monetario, proxima_linha):
-                break  # Parar, excluindo "Total" e tudo abaixo
+                break
         
         # Limpar informações de cabeçalho (ex.: "NOME DA EMPRESA | CNPJ: ...")
         linha_limpa = re.sub(padrao_limpeza_cabecalho, '', linha).strip()
@@ -70,68 +85,81 @@ def preprocess_text(text):
         if found_saldo_anterior:
             # Verificar se a linha é uma data (formato DD/MM/YYYY)
             if re.match(r'\d{2}/\d{2}/\d{4}', linha_limpa):
-                # Se já existe uma transação acumulada, formatá-la e adicionar
-                if current_transacao and len(current_transacao) >= 4:
-                    descricao = f"{current_transacao[0]} {current_transacao[1]}"  # Combinar documento e descrição
-                    valor = current_transacao[2].replace("-", "").strip()  # Remover sinal de menos
-                    if valor.endswith(",00"):
-                        valor = valor[:-3]  # Remover ",00" se for inteiro
-                    tipo = "D" if current_transacao[2].startswith("-") else "C"  # Determinar tipo (C ou D)
-                    transactions.append({
-                        "Data": current_data,
-                        "Descrição": descricao,
-                        "Valor": valor,
-                        "Tipo": tipo
-                    })
-                    current_transacao = []
-                current_data = linha_limpa
-            elif current_data:  # Linhas de transação
-                # Verificar se a linha é um valor numérico (crédito, débito ou saldo)
-                if re.match(padrao_valor_monetario, linha_limpa):
-                    current_transacao.append(linha_limpa)
-                    # Se já temos descrição, documento, crédito/débito e saldo, processar
-                    if len(current_transacao) >= 4:
-                        descricao = f"{current_transacao[0]} {current_transacao[1]}"  # Combinar documento e descrição
-                        valor = current_transacao[2].replace("-", "").strip()  # Remover sinal de menos
-                        if valor.endswith(",00"):
-                            valor = valor[:-3]  # Remover ",00" se for inteiro
-                        tipo = "D" if current_transacao[2].startswith("-") else "C"  # Determinar tipo (C ou D)
+                # Se já existe uma transação acumulada com pelo menos uma descrição e um valor monetário
+                if current_transacao and found_first_value:
+                    # A descrição é tudo até o primeiro valor monetário
+                    descricao = ' '.join(current_transacao[:-1]).strip()
+                    for palavra in palavras_remover_descricao:
+                        descricao = re.sub(palavra, '', descricao, flags=re.IGNORECASE)
+                    descricao = ' '.join(descricao.split())
+                    valor = current_transacao[-1].replace("-", "").strip()
+                    tipo = "D" if current_transacao[-1].startswith("-") else "C"
+                    if descricao and not 'Total' in descricao:
                         transactions.append({
                             "Data": current_data,
                             "Descrição": descricao,
                             "Valor": valor,
                             "Tipo": tipo
                         })
-                        current_transacao = []
-                else:
-                    # Tratar número de documento ou descrição
-                    if re.match(r'^\d+$', linha_limpa):  # Se for apenas número (documento)
-                        if len(current_transacao) == 1:  # Já temos uma descrição
-                            current_transacao.append(linha_limpa)  # Adicionar como documento
-                        else:
-                            current_transacao = [linha_limpa]  # Iniciar nova transação com documento
+                # Inicia uma nova transação
+                current_transacao = []
+                current_data = linha_limpa
+                found_first_value = False
+            elif current_data:  # Linhas de transação
+                # Verificar se a linha é um valor numérico (crédito, débito ou saldo)
+                if re.match(padrao_valor_monetario, linha_limpa):
+                    if found_first_value:
+                        # Se já encontramos o primeiro valor monetário, ignorar o segundo (saldo)
+                        current_transacao = []  # Reinicia para a próxima transação
+                        found_first_value = False
                     else:
-                        # Se for uma descrição, concatenar com a anterior, se houver
-                        if current_transacao and not re.match(r'^\d+$', current_transacao[-1]):
-                            current_transacao[-1] = current_transacao[-1] + ' ' + linha_limpa
-                        else:
-                            current_transacao.append(linha_limpa)
+                        # Primeiro valor monetário encontrado
+                        current_transacao.append(linha_limpa)
+                        found_first_value = True
+                        # Processar a transação imediatamente
+                        if current_transacao:
+                            descricao = ' '.join(current_transacao[:-1]).strip()
+                            for palavra in palavras_remover_descricao:
+                                descricao = re.sub(palavra, '', descricao, flags=re.IGNORECASE)
+                            descricao = ' '.join(descricao.split())
+                            valor = current_transacao[-1].replace("-", "").strip()
+                            tipo = "D" if current_transacao[-1].startswith("-") else "C"
+                            if descricao and not 'Total' in descricao:
+                                transactions.append({
+                                    "Data": current_data,
+                                    "Descrição": descricao,
+                                    "Valor": valor,
+                                    "Tipo": tipo
+                                })
+                            current_transacao = []
+                            found_first_value = False
+                else:
+                    # Acumular tudo que não é valor monetário como parte da descrição
+                    linha_descricao = linha_limpa
+                    for palavra in palavras_remover_descricao:
+                        linha_descricao = re.sub(palavra, '', linha_descricao, flags=re.IGNORECASE)
+                    linha_descricao = ' '.join(linha_descricao.split())
+                    if linha_descricao:
+                        current_transacao.append(linha_descricao)
         
         i += 1
     
     # Adicionar a última transação, se houver
-    if current_transacao and len(current_transacao) >= 4 and current_data:
-        descricao = f"{current_transacao[0]} {current_transacao[1]}"  # Combinar documento e descrição
-        valor = current_transacao[2].replace("-", "").strip()  # Remover sinal de menos
-        if valor.endswith(",00"):
-            valor = valor[:-3]  # Remover ",00" se for inteiro
-        tipo = "D" if current_transacao[2].startswith("-") else "C"  # Determinar tipo (C ou D)
-        transactions.append({
-            "Data": current_data,
-            "Descrição": descricao,
-            "Valor": valor,
-            "Tipo": tipo
-        })
+    if current_transacao and found_first_value and current_data:
+        # A descrição é tudo até o primeiro valor monetário
+        descricao = ' '.join(current_transacao[:-1]).strip()
+        for palavra in palavras_remover_descricao:
+            descricao = re.sub(palavra, '', descricao, flags=re.IGNORECASE)
+        descricao = ' '.join(descricao.split())
+        valor = current_transacao[-1].replace("-", "").strip()
+        tipo = "D" if current_transacao[-1].startswith("-") else "C"
+        if descricao and not 'Total' in descricao:
+            transactions.append({
+                "Data": current_data,
+                "Descrição": descricao,
+                "Valor": valor,
+                "Tipo": tipo
+            })
     
     return transactions
 

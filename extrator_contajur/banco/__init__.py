@@ -4,6 +4,7 @@ from .sicoob3 import process as process_sicoob3
 from .itau import process as process_itau
 from .itau2 import process as process_itau2
 from .itau3 import process as process_itau3
+from .itau4 import process as process_itau4
 from .caixa import process as process_caixa
 from .inter import process as process_inter
 from .nubank import process as process_nubank
@@ -31,6 +32,7 @@ BANK_PROCESSORS = {
     "Itaú": process_itau,
     "Itaú2": process_itau2,
     "Itaú3": process_itau3,
+    "Itaú4": process_itau4,
     "Caixa": process_caixa,
     "Banco Inter": process_inter,
     "Nubank": process_nubank,

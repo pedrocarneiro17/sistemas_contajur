@@ -13,6 +13,9 @@ def identificar_banco(text):
         return "Erro: Texto vazio ou ilegível"
     palavras = text.split()
     
+    if 'Fale Conosco: www.itau.com.br/empresas.' in text:
+        return "Itaú4"
+    
     # Nubank
     if 'ouvidoria@nubank.com.br' in text:
         return "Nubank"
@@ -95,6 +98,7 @@ def identificar_banco(text):
         return "Banco Inter"
     
     # Itaú (variações)
+
     if '8119' in text or '1472' in text or '3116' in text or '1300' in text:
         first_line = linhas[0].strip().lower()
         if re.match(r"^\s*extrato\s+mensal", first_line):

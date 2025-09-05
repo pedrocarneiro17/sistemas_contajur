@@ -55,6 +55,13 @@ def process_all():
         # --- 1. Processamento do Excel ---
         excel_df, excel_duplicates_removed = remove_duplicatas_e_vazias_xls(excel_file)
 
+        # --- [NOVA ANÁLISE] Identificar duplicatas com datas diferentes ---
+        # Após a remoção de duplicatas exatas, contamos as ocorrências restantes de cada 'Nr. documento'.
+        # Se um número ainda aparece mais de uma vez, é porque as datas são distintas.
+        counts = excel_df['Nr. documento'].value_counts()
+        notas_duplicadas_datas_diferentes = counts[counts > 1].index.tolist()
+
+
         # --- 2. Processamento do PDF ---
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(pdf_file.read())
@@ -84,11 +91,10 @@ def process_all():
 
             divergencias = 0
             for _, row in pdf_compare_df.iterrows():
-                # Garante que o ID do documento seja do tipo correto para a busca
                 try:
                     doc_id = int(row[id_col_pdf])
                 except (ValueError, TypeError):
-                    continue # Pula linhas do PDF sem um ID válido
+                    continue 
 
                 pdf_val = safe_to_float(row[val_col_pdf])
                 
@@ -112,8 +118,20 @@ def process_all():
         report_content = [f"Relatório de Processamento - Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", "="*50]
         report_content.extend(["\n--- Verificação de Valores (PDF vs. Excel) ---", comparison_summary])
         if comparison_report: report_content.extend(comparison_report)
-        report_content.extend(["\n--- Análise da Planilha Excel ---", f"Total de documentos duplicados removidos: {len(excel_duplicates_removed)}"])
+        
+        report_content.extend(["\n--- Análise da Planilha Excel ---"])
+        # Seção de duplicatas exatas removidas
+        report_content.append(f"Total de duplicatas exatas (mesmo número e data) removidas: {len(excel_duplicates_removed)}")
         if excel_duplicates_removed: report_content.append("Documentos removidos: " + ", ".join(map(str, excel_duplicates_removed)))
+        
+        # --- [NOVA SEÇÃO NO RELATÓRIO] ---
+        report_content.extend(["\n--- Notas duplicadas com datas diferentes (mantidas na planilha) ---"])
+        if notas_duplicadas_datas_diferentes:
+            report_content.append(f"Total de notas encontradas: {len(notas_duplicadas_datas_diferentes)}")
+            report_content.append("Números das notas: " + ", ".join(map(str, sorted(notas_duplicadas_datas_diferentes))))
+        else:
+            report_content.append("Nenhuma nota com número duplicado e data diferente foi encontrada.")
+        
         report_content.extend(["\n--- Análise do Arquivo PDF ---", f"Modelo Identificado: {modelo}", f"Total de números faltantes adicionados: {len(pdf_missing_nums)}"])
         if pdf_missing_nums: report_content.append("Números adicionados: " + ", ".join(map(str, pdf_missing_nums)))
         

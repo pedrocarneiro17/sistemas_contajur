@@ -125,7 +125,7 @@ def process_all():
         if excel_duplicates_removed: report_content.append("Documentos removidos: " + ", ".join(map(str, excel_duplicates_removed)))
         
         # --- [NOVA SEÇÃO NO RELATÓRIO] ---
-        report_content.extend(["\n--- Notas duplicadas com chaves (mantidas na planilha) ---"])
+        report_content.extend(["\n--- Notas duplicadas com chaves diferentes (mantidas na planilha) ---"])
         if notas_duplicadas_datas_diferentes:
             report_content.append(f"Total de notas encontradas: {len(notas_duplicadas_datas_diferentes)}")
             report_content.append("Números das notas: " + ", ".join(map(str, sorted(notas_duplicadas_datas_diferentes))))

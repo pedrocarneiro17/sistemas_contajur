@@ -121,16 +121,16 @@ def process_all():
         
         report_content.extend(["\n--- Análise da Planilha Excel ---"])
         # Seção de duplicatas exatas removidas
-        report_content.append(f"Total de duplicatas exatas (mesmo número e data) removidas: {len(excel_duplicates_removed)}")
+        report_content.append(f"Total de duplicatas exatas (mesmo número e chave) removidas: {len(excel_duplicates_removed)}")
         if excel_duplicates_removed: report_content.append("Documentos removidos: " + ", ".join(map(str, excel_duplicates_removed)))
         
         # --- [NOVA SEÇÃO NO RELATÓRIO] ---
-        report_content.extend(["\n--- Notas duplicadas com datas diferentes (mantidas na planilha) ---"])
+        report_content.extend(["\n--- Notas duplicadas com chaves (mantidas na planilha) ---"])
         if notas_duplicadas_datas_diferentes:
             report_content.append(f"Total de notas encontradas: {len(notas_duplicadas_datas_diferentes)}")
             report_content.append("Números das notas: " + ", ".join(map(str, sorted(notas_duplicadas_datas_diferentes))))
         else:
-            report_content.append("Nenhuma nota com número duplicado e data diferente foi encontrada.")
+            report_content.append("Nenhuma nota com número duplicado e chave diferente foi encontrada.")
         
         report_content.extend(["\n--- Análise do Arquivo PDF ---", f"Modelo Identificado: {modelo}", f"Total de números faltantes adicionados: {len(pdf_missing_nums)}"])
         if pdf_missing_nums: report_content.append("Números adicionados: " + ", ".join(map(str, pdf_missing_nums)))

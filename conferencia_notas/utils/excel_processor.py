@@ -20,11 +20,11 @@ def remove_duplicatas_e_vazias_xls(excel_file_content):
         df.dropna(how='all', inplace=True)
 
         # Encontra as duplicatas com base nas duas colunas
-        duplicatas = df[df.duplicated(subset=['Nr. documento', 'Data de emissão'], keep='first')]
+        duplicatas = df[df.duplicated(subset=['Nr. documento', 'Chave'], keep='first')]
         documentos_removidos = duplicatas['Nr. documento'].tolist()
 
         # Remove as duplicatas, mantendo a primeira ocorrência
-        df_sem_duplicatas = df.drop_duplicates(subset=['Nr. documento', 'Data de emissão'], keep='first')
+        df_sem_duplicatas = df.drop_duplicates(subset=['Nr. documento', 'Chave'], keep='first')
 
         # Retorna o DataFrame e a lista de documentos removidos
         return df_sem_duplicatas, documentos_removidos

@@ -19,6 +19,8 @@ def read_pdf_and_identify_model(pdf_path):
         modelo = 'SGBr Sistemas'
     elif 'Relatório Fechamento Fiscal Entradas' in texto_completo:
         modelo = 'Relatório Fechamento Fiscal Entradas'
+    elif 'Relatório Totais de Notas e Cupons' in texto_completo: 
+        modelo = 'Relatório Totais'
     else:
         modelo = 'Unknown'
     

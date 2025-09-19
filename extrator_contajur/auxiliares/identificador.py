@@ -43,7 +43,7 @@ def identificar_banco(text):
     if 'Agência: 3472' in text or 'Agência: 3222' in text or 'Agência: 3503' in  text:
         return "Santander1"
 
-    if 'EXTRATOCONSOLIDADOINTELIGENTE' in text:
+    if 'EXTRATOCONSOLIDADOINTELIGENTE' in text or 'EXTRATO CONSOLIDADO INTELIGENTE' in  text:
         return "Santander2"
     
     # Caixa
@@ -83,7 +83,7 @@ def identificar_banco(text):
         return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
     
     # Sicoob (variações)
-    if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text:
+    if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text or 'SISBR - SISTEMA DE INFORMÁTICA DO SICOOB' in  text:
         return "Sicoob3"
 
     if (linhas and "Sicoob | Internet Banking" in linhas[0].strip() and 

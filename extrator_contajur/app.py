@@ -174,7 +174,7 @@ def process_extracts():
                         })
                         continue
 
-                    if identified_bank in ['Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone',
+                    if identified_bank in ['Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 'Itaú4',
                                          'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago']:
                         try:
                             file.seek(0)

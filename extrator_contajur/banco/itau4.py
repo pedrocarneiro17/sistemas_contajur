@@ -5,70 +5,121 @@ from ..auxiliares.utils import process_transactions
 def preprocess_text(text):
     """
     Pré-processa o texto do extrato bancário para extrair transações.
-    Adaptado para funcionar com dois formatos de extrato:
-    - Formato 1: Inicia após 'SALDO ANTERIOR'.
-    - Formato 2: Inicia diretamente com transações ou saldos diários.
-    - Para o processamento ao encontrar 'aviso:'.
-    - Ignora linhas de saldo diário.
-    - Extrai Data, Descrição, Valor e Tipo de linhas de transação únicas.
+    Adaptado para o novo formato de extrato (Fitz):
+    - Inicia após a linha contendo 'Saldo (R$)'.
+    - Para ao encontrar 'Os saldos'.
+    - Cada transação começa com uma data (DD/MM/YYYY) e termina na linha anterior à próxima data.
+    - O valor é sempre a última linha do bloco de transação.
+    - Aplica filtro para remover transações com 'SALDO TOTAL DISPONÍVEL DIA'.
     """
     if not text:
         return []
 
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     
-    # --- Padrões de Regex da nossa lógica validada ---
-    # Padrão para identificar datas (DD/MM/AAAA) no início da linha
-    date_pattern = r"^(\d{2}/\d{2}/\d{4})\s+"
-    # Padrão para identificar o valor da transação no final da linha
-    value_pattern = r"([-]?\d{1,3}(?:\.\d{3})*,\d{2})\s*$"
+    # --- Padrões de Regex ---
+    date_pattern = r"^\d{2}/\d{2}/\d{4}$"  # Data no formato DD/MM/YYYY
+    # Padrão para identificar o valor no formato monetário (ex: 123.456,78 ou -123.456,78)
+    # A âncora '$' garante que o valor seja o ÚLTIMO item na sua linha.
+    value_pattern = r"([-]?\d{1,3}(?:\.\d{3})*,\d{2})$" 
     
     transactions = []
     start_processing = False
+    current_transaction = []
     
     for line in lines:
         # Condição de parada do processamento
-        if "aviso:" in line.lower():
+        if "Os saldos" in line:
             break
         
-        # Condição de início do processamento (para o formato com "SALDO ANTERIOR")
-        if "saldo anterior" in line.lower():
+        # Condição de início do processamento
+        if "Saldo (R$)" in line:
             start_processing = True
             continue
         
-        # Ignorar linhas de saldo diário ou saldo em conta corrente
-        if "saldo total disponível" in line.lower() or "saldo em conta corrente" in line.lower():
+        # Ignorar linhas antes de começar o processamento
+        if not start_processing:
             continue
-            
-        # Tenta identificar uma transação completa (data e valor na mesma linha)
-        date_match = re.match(date_pattern, line)
-        value_match = re.search(value_pattern, line)
         
-        if date_match and value_match:
-            # Se encontramos uma transação válida, começamos o processamento (para o formato sem "SALDO ANTERIOR")
-            start_processing = True
-            current_date = date_match.group(1)
-            value_with_signal = value_match.group(1).strip()
-            
-            tipo = "D" if "-" in value_with_signal else "C"
+        # Verifica se a linha começa com uma data
+        if re.match(date_pattern, line):
+            # Se encontramos uma nova data, processamos a transação anterior (se houver)
+            if current_transaction:
+                if len(current_transaction) >= 2:
+                    data = current_transaction[0]
+                    value_line = current_transaction[-1]
+                    value_match = re.search(value_pattern, value_line)
+                    
+                    if value_match:
+                        value_with_signal = value_match.group(1)
+                        valor = value_with_signal.replace("-", "").strip()
+                        
+                        # Tipo: 'C' para valores sem sinal negativo, 'D' para valores negativos
+                        tipo = "C" if "-" not in value_with_signal else "D"
+                        
+                        # Combina todas as linhas intermediárias como descrição (1: penúltima linha)
+                        # Remove a linha do valor (current_transaction[-1])
+                        descricao_lines = current_transaction[1:-1]
+                        
+                        # Limpa o valor restante da linha de descrição se ele ainda estiver lá
+                        descricao_parts = []
+                        for desc_line in descricao_lines:
+                             descricao_parts.append(re.sub(value_pattern, "", desc_line).strip())
+                             
+                        # Junta as partes da descrição com um espaço
+                        descricao = " ".join(descricao_parts).strip()
+                        
+                        transactions.append({
+                            "Data": data,
+                            "Descrição": descricao if descricao else "DESCRICAO VAZIA",
+                            "Valor": valor,
+                            "Tipo": tipo
+                        })
+                        
+            # Inicia uma nova transação
+            current_transaction = [line]
+        elif start_processing:
+            # Adiciona a linha à transação atual
+            current_transaction.append(line)
+    
+    # Processa a última transação, se houver
+    if current_transaction and len(current_transaction) >= 2:
+        data = current_transaction[0]
+        value_line = current_transaction[-1]
+        value_match = re.search(value_pattern, value_line)
+        
+        if value_match:
+            value_with_signal = value_match.group(1)
             valor = value_with_signal.replace("-", "").strip()
+            tipo = "C" if "-" not in value_with_signal else "D"
             
-            # Extrai a descrição removendo a data do início e o valor do final
-            description_part = re.sub(date_pattern, "", line)
-            description = re.sub(value_pattern, "", description_part).strip()
+            # Combina as linhas intermediárias como descrição
+            descricao_lines = current_transaction[1:-1]
+            descricao_parts = []
+            for desc_line in descricao_lines:
+                 descricao_parts.append(re.sub(value_pattern, "", desc_line).strip())
+                 
+            descricao = " ".join(descricao_parts).strip()
             
             transactions.append({
-                "Data": current_date,
-                "Descrição": description,
+                "Data": data,
+                "Descrição": descricao if descricao else "DESCRICAO VAZIA",
                 "Valor": valor,
                 "Tipo": tipo
             })
+
+    # --- FILTRAGEM DE TRANSAÇÕES (EXCLUIR SALDOS) ---
     
-    # Remover transações duplicadas
+    # Filtro para excluir transações que contêm "SALDO" na descrição (SALDO TOTAL DISPONÍVEL DIA)
+    filtered_transactions = [
+        t for t in transactions 
+        if "SALDO" not in t["Descrição"].upper()
+    ]
+
+    # Remover transações duplicadas (mantendo sua lógica original)
     seen = set()
     unique_transactions = []
-    for transaction in transactions:
-        # Criar uma tupla com os campos para verificar duplicatas
+    for transaction in filtered_transactions:
         transaction_tuple = (transaction["Data"], transaction["Descrição"], transaction["Valor"], transaction["Tipo"])
         if transaction_tuple not in seen:
             seen.add(transaction_tuple)

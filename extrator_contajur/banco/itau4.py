@@ -5,11 +5,12 @@ from ..auxiliares.utils import process_transactions
 def preprocess_text(text):
     """
     Pré-processa o texto do extrato bancário para extrair transações.
-    A lógica foi adaptada para o formato específico do extrato fornecido anteriormente.
-    - Inicia o processamento após a linha 'SALDO ANTERIOR'.
+    Adaptado para funcionar com dois formatos de extrato:
+    - Formato 1: Inicia após 'SALDO ANTERIOR'.
+    - Formato 2: Inicia diretamente com transações ou saldos diários.
     - Para o processamento ao encontrar 'aviso:'.
     - Ignora linhas de saldo diário.
-    - Extrai Data, Descrição e Valor de linhas de transação únicas.
+    - Extrai Data, Descrição, Valor e Tipo de linhas de transação únicas.
     """
     if not text:
         return []
@@ -30,16 +31,12 @@ def preprocess_text(text):
         if "aviso:" in line.lower():
             break
         
-        # Condição de início do processamento
+        # Condição de início do processamento (para o formato com "SALDO ANTERIOR")
         if "saldo anterior" in line.lower():
             start_processing = True
             continue
         
-        # Ignorar tudo que vem antes da linha de início
-        if not start_processing:
-            continue
-        
-        # Ignorar linhas de saldo que aparecem no meio do extrato
+        # Ignorar linhas de saldo diário ou saldo em conta corrente
         if "saldo total disponível" in line.lower() or "saldo em conta corrente" in line.lower():
             continue
             
@@ -48,6 +45,8 @@ def preprocess_text(text):
         value_match = re.search(value_pattern, line)
         
         if date_match and value_match:
+            # Se encontramos uma transação válida, começamos o processamento (para o formato sem "SALDO ANTERIOR")
+            start_processing = True
             current_date = date_match.group(1)
             value_with_signal = value_match.group(1).strip()
             
@@ -65,7 +64,7 @@ def preprocess_text(text):
                 "Tipo": tipo
             })
     
-    # Remover transações duplicadas (lógica mantida do seu template)
+    # Remover transações duplicadas
     seen = set()
     unique_transactions = []
     for transaction in transactions:
@@ -75,7 +74,6 @@ def preprocess_text(text):
             seen.add(transaction_tuple)
             unique_transactions.append(transaction)
     
-    # A função deve retornar a lista de dicionários
     return unique_transactions
 
 def extract_transactions(transactions):
@@ -90,5 +88,4 @@ def process(text):
     Processa o texto extraído do extrato e retorna o resultado final
     através da função utilitária process_transactions.
     """
-    # Esta função agora orquestra a chamada, passando as funções de extração como argumento
     return process_transactions(text, preprocess_text, extract_transactions)

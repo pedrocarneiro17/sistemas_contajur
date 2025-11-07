@@ -39,6 +39,10 @@ def identificar_banco(text):
     if 'PagSeguro Internet S/A' in text or '290-PagSeguroInternetS/A' in text:
         return "PagBank"
     
+        # Banco do Brasil (variações)
+    if '473-1' in text:
+        return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
+    
     # Santander
     if 'Agência: 3472' in text or 'Agência: 3222' in text or 'Agência: 3503' in  text:
         return "Santander1"
@@ -77,10 +81,6 @@ def identificar_banco(text):
     # Bradesco
     if '00632' in text:
         return "Bradesco"
-    
-    # Banco do Brasil (variações)
-    if '473-1' in text:
-        return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
     
     # Sicoob (variações)
     if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text or 'SISBR - SISTEMA DE INFORMÁTICA DO SICOOB' in  text:

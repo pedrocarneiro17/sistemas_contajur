@@ -38,6 +38,9 @@ def identificar_banco(text):
     # PagBank
     if 'PagSeguro Internet S/A' in text or '290-PagSeguroInternetS/A' in text:
         return "PagBank"
+        # Stone
+    if  'meajuda@stone.com.br' in text:
+        return "Stone"
     
         # Banco do Brasil (variações)
     if '473-1' in text:
@@ -53,10 +56,6 @@ def identificar_banco(text):
     # Caixa
     if 'Sujeito a alteração até o final do expediente bancário' in text or 'Os lançamentos de extrato não estão disponíveis' in text or 'SAC CAIXA' in text:
         return "Caixa"
-
-    # Stone
-    if len(linhas) >= 3 and 'Instituição Stone Instituição' in linhas[2].strip():
-        return "Stone"
     
         # iFood
     if 'Extrato da Conta Digital iFood' in text:

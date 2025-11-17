@@ -1,5 +1,5 @@
 import re
-from ..auxiliares.utils import process_transactions  
+from ..auxiliares.utils import process_transactions 
 
 def preprocess_text(text):
     """
@@ -9,10 +9,11 @@ def preprocess_text(text):
     """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     
-    # Mapa de meses para conversão de data
+    # Mapa de meses para conversão de data (incluindo tratamento de acentuação no 'março' se for necessário)
     month_map = {
         "janeiro": "01", "fevereiro": "02", "março": "03", "abril": "04", "maio": "05", "junho": "06",
-        "julho": "07", "agosto": "08", "setembro": "09", "outubro": "10", "novembro": "11", "dezembro": "12"
+        "julho": "07", "agosto": "08", "setembro": "09", "outubro": "10", "novembro": "11", "dezembro": "12",
+        "marco": "03" # Adicionado para garantir o parse se o PDF extrair "Março" sem acento
     }
     
     date_pattern = r"^(\d{1,2}) de ([A-Za-zç]+) de (\d{4})"
@@ -31,7 +32,12 @@ def preprocess_text(text):
         if date_match:
             day = date_match.group(1).zfill(2)  # Garantir dois dígitos
             month_name = date_match.group(2).lower()
-            month = month_map.get(month_name, "01")  # Default para 01 se mês inválido
+            
+            # Tratamento de acentuação: converte "março" para "marco" se necessário
+            if month_name == "março":
+                month_name = "marco"
+            
+            month = month_map.get(month_name, "01")
             year = date_match.group(3)
             current_date = f"{day}/{month}/{year}"
             continue
@@ -55,6 +61,10 @@ def preprocess_text(text):
             desc_start = 0
             desc_end = value_matches[0].start()
             description = line[desc_start:desc_end].strip()
+            
+            # NOVO: Se a descrição for vazia, preencher com "-"
+            if not description:
+                description = "-"
             
             transactions.append({
                 "Data": current_date,

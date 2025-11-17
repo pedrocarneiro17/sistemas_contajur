@@ -13,8 +13,13 @@ def identificar_banco(text):
         return "Erro: Texto vazio ou ilegível"
     palavras = text.split()
     
+    # Itaú4
     if 'Fale Conosco: www.itau.com.br/empresas.' in text:
         return "Itaú4"
+    
+    # Banco Inter 
+    if 'Instituição: Banco Inter' in text:
+        return "Banco Inter"
     
     # Nubank
     if 'ouvidoria@nubank.com.br' in text:
@@ -91,10 +96,6 @@ def identificar_banco(text):
     
     if (palavras and palavras[0].lower().startswith('sicoob') or 'SICOOB CREDIMEPI' in text) or 'SICOOBCREDIMEPI' in text:
         return "Sicoob1"
-    
-    # Banco Inter 
-    if len(linhas) >= 3 and 'Banco Inter' in linhas[2]:
-        return "Banco Inter"
     
     # Itaú (variações)
 

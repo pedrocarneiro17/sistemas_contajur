@@ -103,8 +103,10 @@ def process_all():
                 pdf_val = safe_to_float(row[val_col_pdf])
                 
                 if doc_id not in excel_lookup:
+                    # CORRIGIDO: avaliar condição antes de formatar
+                    pdf_val_formatted = f'{pdf_val:.2f}' if pdf_val is not None else 'N/A'
                     comparison_report.append(
-                        f"  - ID {doc_id}: Encontrado no PDF (R$ {pdf_val:.2f if pdf_val is not None else 'N/A'}), mas ausente no Excel.".replace('.', ',')
+                        f"  - ID {doc_id}: Encontrado no PDF (R$ {pdf_val_formatted}), mas ausente no Excel.".replace('.', ',')
                     )
                     continue
 
@@ -112,7 +114,9 @@ def process_all():
                 if len(excel_vals) > 1:
                     problemas_duplicatas += 1
                     excel_vals_str = ', '.join([f'R$ {ev:.2f}' for ev in excel_vals if ev is not None]).replace('.', ',')
-                    pdf_val_str = f'R$ {pdf_val:.2f}'.replace('.', ',') if pdf_val is not None else 'N/A'
+                    # CORRIGIDO: avaliar condição antes de formatar
+                    pdf_val_formatted = f'{pdf_val:.2f}' if pdf_val is not None else 'N/A'
+                    pdf_val_str = f'R$ {pdf_val_formatted}'.replace('.', ',') if pdf_val is not None else 'N/A'
                     comparison_report.append(
                         f"  - ID {doc_id}: Múltiplos valores no Excel ({excel_vals_str}). Valor no PDF: {pdf_val_str}."
                     )
@@ -125,6 +129,7 @@ def process_all():
                                 f"  - ID {doc_id}: Divergência de valores -> PDF: R$ {pdf_val:.2f} | Excel: R$ {excel_val:.2f}".replace('.', ',')
                             )
                     else:
+                        # CORRIGIDO: avaliar condição antes de formatar
                         pdf_val_str = f'R$ {pdf_val:.2f}'.replace('.', ',') if pdf_val is not None else 'N/A'
                         excel_val_str = f'R$ {excel_val:.2f}'.replace('.', ',') if excel_val is not None else 'N/A'
                         comparison_report.append(

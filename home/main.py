@@ -11,6 +11,7 @@ from extrator_contajur.app import extrator_bp
 from conferencia_notas.app import conferencia_bp
 from boletos.app import boletos_bp
 from retencao_notas.app import retencao_bp
+from entrada_saida.app import entrada_saida_bp
 
 # Configurar o Flask
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,6 +28,7 @@ app.register_blueprint(extrator_bp)
 app.register_blueprint(conferencia_bp)
 app.register_blueprint(boletos_bp) 
 app.register_blueprint(retencao_bp)
+app.register_blueprint(entrada_saida_bp)
 
 # Rota principal
 @app.route('/')

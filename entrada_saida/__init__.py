@@ -1,0 +1,1 @@
+from .app import entrada_saida_bp

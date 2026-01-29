@@ -23,15 +23,26 @@ def preprocess_text(text):
     
     VALUE_REGEX = r'([+-]\d{1,3}(?:\.\d{3})*(?:,\d{2}))$'
     
-    DATE_TRANSACTION_PATTERN = re.compile(r'^(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})\s+(.*)\s+' + VALUE_REGEX)
+    DATE_TRANSACTION_PATTERN = re.compile(
+        r'^(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})\s+(.*)\s+' + VALUE_REGEX
+    )
     
-    DATE_MONTH_TRANSACTION_PATTERN = re.compile(r'^(\d{2})\s+([A-Z][a-z]{2}),?\s+(\d{4})\s+(\d{2}:\d{2})\s+(.*)\s+' + VALUE_REGEX)
-
-    TIME_TRANSACTION_PATTERN = re.compile(r'^(\d{2}:\d{2})\s+(.*)\s+' + VALUE_REGEX)
-
+    DATE_MONTH_TRANSACTION_PATTERN = re.compile(
+        r'^(\d{2})\s+([A-Z][a-z]{2}),?\s+(\d{4})\s+(\d{2}:\d{2})\s+(.*)\s+' + VALUE_REGEX
+    )
+    
+    TIME_TRANSACTION_PATTERN = re.compile(
+        r'^(\d{2}:\d{2})\s+(.*)\s+' + VALUE_REGEX
+    )
+    
     def normalize_date(day, month, year):
         month_num = MONTH_MAP.get(month, month)
         return f"{day}/{month_num}/{year}"
+    
+    def is_transaction_line(line):
+        return (DATE_TRANSACTION_PATTERN.match(line) or 
+                DATE_MONTH_TRANSACTION_PATTERN.match(line) or 
+                TIME_TRANSACTION_PATTERN.match(line))
     
     start_index = 0
     try:
@@ -42,27 +53,36 @@ def preprocess_text(text):
     lines = lines[start_index:]
     
     skip_footer_lines = 0
+    i = 0
     
-    for line in lines:
+    while i < len(lines):
+        line = lines[i]
         
         if skip_footer_lines > 0:
             skip_footer_lines -= 1
+            i += 1
             continue
         
         if FOOTER_START_PATTERN.match(line):
-            skip_footer_lines = 4 
+            skip_footer_lines = 4
+            i += 1
             continue
         
         if line == HEADER_TEXT:
+            i += 1
             continue
 
         if SALDO_PATTERN.match(line):
             current_date = None
             pending_transaction = None
+            i += 1
             continue
         
         if pending_transaction:
-            pending_transaction["Descrição"] += f" {line}"
+            next_line = line
+            if not is_transaction_line(next_line) and not SALDO_PATTERN.match(next_line):
+                pending_transaction["Descrição"] += f" {next_line}"
+                i += 1
             transactions.append(pending_transaction)
             pending_transaction = None
             continue
@@ -88,10 +108,11 @@ def preprocess_text(text):
                 "Tipo": tipo
             }
             
-            if descricao.endswith("Pagamento efetuado") or descricao.endswith("Enviado"):
+            if descricao.endswith("Pagamento efetuado"):
                 pending_transaction = transaction
             else:
                 transactions.append(transaction)
+            i += 1
             continue
             
         match_date_trans = DATE_TRANSACTION_PATTERN.match(line)
@@ -111,10 +132,11 @@ def preprocess_text(text):
                 "Tipo": tipo
             }
             
-            if descricao.endswith("Pagamento efetuado") or descricao.endswith("Enviado"):
+            if descricao.endswith("Pagamento efetuado"):
                 pending_transaction = transaction
             else:
                 transactions.append(transaction)
+            i += 1
             continue
 
         match_time_trans = TIME_TRANSACTION_PATTERN.match(line)
@@ -133,11 +155,14 @@ def preprocess_text(text):
                 "Tipo": tipo
             }
             
-            if descricao.endswith("Pagamento efetuado") or descricao.endswith("Enviado"):
+            if descricao.endswith("Pagamento efetuado"):
                 pending_transaction = transaction
             else:
                 transactions.append(transaction)
+            i += 1
             continue
+        
+        i += 1
 
     if pending_transaction:
         transactions.append(pending_transaction)

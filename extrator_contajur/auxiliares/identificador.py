@@ -22,7 +22,7 @@ def identificar_banco(text):
         return "Banco Inter"
     
     # Nubank
-    if 'ouvidoria@nubank.com.br' in text:
+    if 'nubank.com.br/contatos#ouvidoria' in text:
         return "Nubank"
     
     # Mercado Pago

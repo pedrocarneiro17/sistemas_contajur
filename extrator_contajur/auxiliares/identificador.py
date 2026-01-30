@@ -55,7 +55,7 @@ def identificar_banco(text):
     if 'Agência: 3472' in text or 'Agência: 3222' in text or 'Agência: 3503' in  text:
         return "Santander1"
 
-    if 'EXTRATOCONSOLIDADOINTELIGENTE' in text or 'EXTRATO CONSOLIDADO INTELIGENTE' in  text:
+    if 'EXTRATOCONSOLIDADOINTELIGENTE' in text or 'EXTRATO CONSOLIDADO INTELIGENTE' in  text or 'EXTRATO CONSOLIDADO' in text:
         return "Santander2"
     
     # Caixa

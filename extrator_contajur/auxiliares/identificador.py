@@ -13,6 +13,9 @@ def identificar_banco(text):
         return "Erro: Texto vazio ou ilegível"
     palavras = text.split()
     
+    if ("https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text):
+        return "Sicoob2"
+    
     if (palavras and palavras[0].lower().startswith('sicoob') or 'SICOOB CREDIMEPI' in text) or 'SICOOBCREDIMEPI' in text:
         return "Sicoob1"
     

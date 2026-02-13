@@ -1,0 +1,1 @@
+PS C:\Users\pedro\OneDrive\Área de Trabalho\contajur\sistemas_contajur> pyinstaller --onefile --windowed --name="Extrator" --paths=. --add-data "extrator_contajur;extrator_contajur" processador_lote/processadorgui.py

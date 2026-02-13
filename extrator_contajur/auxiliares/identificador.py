@@ -13,12 +13,6 @@ def identificar_banco(text):
         return "Erro: Texto vazio ou ilegível"
     palavras = text.split()
     
-    if ("https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text):
-        return "Sicoob2"
-    
-    if (palavras and palavras[0].lower().startswith('sicoob') or 'SICOOB CREDIMEPI' in text) or 'SICOOBCREDIMEPI' in text:
-        return "Sicoob1"
-    
     # Itaú4
     if 'Fale Conosco: www.itau.com.br/empresas.' in text:
         return "Itaú4"
@@ -93,13 +87,16 @@ def identificar_banco(text):
         return "Bradesco"
     
     # Sicoob (variações)
-
+    if ("https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text):
+        return "Sicoob2"
+    
+    if 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB - SISBR' in text:
+        return "Sicoob1"
     
     if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text or 'SISBR - SISTEMA DE INFORMÁTICA DO SICOOB' in  text:
         return "Sicoob3"
 
-    if ("SISTEMA DE COOPERATIVAS DE CRÉDITO DO BRASIL" in text):
-        return "Sicoob2"
+
 
     # Itaú (variações)
 

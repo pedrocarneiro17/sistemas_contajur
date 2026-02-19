@@ -52,7 +52,7 @@ def identificar_banco(text):
         return "Banco do Brasil2" if text.strip().split()[0].lower() == 'extrato' else "Banco do Brasil1"
     
     # Santander
-    if 'Agência: 3472' in text or 'Agência: 3222' in text or 'Agência: 3503' in  text:
+    if 'Agência: 3472' in text or 'Agência: 3222' in text or 'Agência: 3503' in  text or 'Agência: 3156' in  text:
         return "Santander1"
 
     if 'EXTRATOCONSOLIDADOINTELIGENTE' in text or 'EXTRATO CONSOLIDADO INTELIGENTE' in  text or 'EXTRATO CONSOLIDADO' in text:

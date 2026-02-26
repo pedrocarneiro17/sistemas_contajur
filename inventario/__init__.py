@@ -1,0 +1,1 @@
+from .app import inventario_bp

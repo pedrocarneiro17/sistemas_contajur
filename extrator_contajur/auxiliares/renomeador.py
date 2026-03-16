@@ -40,45 +40,38 @@ class RenomeadorExtrato:
             "Mercado Pago": self._extract_mercadopago,
         }
     
-    def gerar_nome_arquivo(self, texto, banco_identificado, nome_original="extrato"):
+    def gerar_nome_arquivo(self, texto, banco_identificado, nome_original="extrato", incluir_banco=False):
         """
-        Gera o nome do arquivo no formato: CLIENTE_PERIODO.csv
-        Ex: JOAO_SILVA_01-2024.csv
-        
-        Args:
-            texto (str): Texto extraído do PDF
-            banco_identificado (str): Nome do banco identificado
-            nome_original (str): Nome original do arquivo (fallback)
-            
-        Returns:
-            str: Nome do arquivo formatado
+        Gera o nome do arquivo no formato: CLIENTE_BANCO_PERIODO.csv (se incluir_banco=True)
+        ou CLIENTE_PERIODO.csv (padrão anterior).
+        Ex: JOAO_SILVA_BRADESCO_01-2024.csv
         """
         extractor = self.extractors.get(banco_identificado)
-        
+
         if not extractor:
             return f"{nome_original}.csv"
-        
+
         try:
             cliente, periodo = extractor(texto)
-            
+
             if not cliente:
                 cliente = "CLIENTE_NAO_IDENTIFICADO"
-            
             if not periodo:
                 periodo = "SEM_PERIODO"
-            
-            # Limpar e formatar o nome do cliente
+
             cliente = self._limpar_nome(cliente)
-            
-            # Formatar período
             periodo = self._formatar_periodo(periodo)
-            
+
+            if incluir_banco:
+                banco = self._limpar_nome(banco_identificado)
+                return f"{cliente}_{banco}_{periodo}.csv"
+
             return f"{cliente}_{periodo}.csv"
-            
+
         except Exception as e:
             print(f"Erro ao extrair informações: {e}")
             return f"{nome_original}.csv"
-    
+     
     def _limpar_nome(self, nome):
         """Remove caracteres especiais e formata o nome"""
         # Remover pontuação, manter apenas letras, números e espaços
@@ -264,33 +257,34 @@ class RenomeadorExtrato:
         return cliente, periodo
 
     def _extract_sicredi(self, texto):
-        """Extrai nome e período do Sicredi"""
-        cliente = None
-        periodo = None
-        
-        # Nome está após "Associado:"
-        # Ex: "Associado: LOGIN TRANSPORTES E LOCACOES LTDA"
-        match_cliente = re.search(r'Associado:\s*(.+)', texto)
-        if match_cliente:
-            # Pegar até quebra de linha ou até próxima informação
-            linha_associado = match_cliente.group(1).strip()
-            cliente = linha_associado.split('\n')[0].strip()
-            # Remover possível "Cooperativa:" que pode vir junto
-            cliente = cliente.split('Cooperativa:')[0].strip()
-        
-        # Período está em "Dados referentes ao período"
-        # Ex: "Dados referentes ao período 01/04/2025 a 30/04/2025."
-        match_periodo = re.search(
-            r'período\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})',
-            texto,
-            re.IGNORECASE
-        )
-        if match_periodo:
-            data_inicio = match_periodo.group(1).replace('/', '-')
-            data_fim = match_periodo.group(2).replace('/', '-')
-            periodo = f"{data_inicio}_{data_fim}"
-        
-        return cliente, periodo
+            """Extrai nome e período do Sicredi"""
+            cliente = None
+            periodo = None
+            
+            # 1. Extrair o Nome
+            # O Regex [^\n]+ pega tudo que vem após "Associado:" até a próxima quebra de linha
+            # Ex: "Associado: JB BAR DA PRACA LTDA"
+            match_cliente = re.search(r'Associado:\s*([^\n]+)', texto, re.IGNORECASE)
+            if match_cliente:
+                cliente = match_cliente.group(1).strip()
+                # Limpeza caso o leitor de PDF junte as linhas e traga a "Cooperativa:" na mesma string
+                cliente = cliente.split('Cooperativa:')[0].strip()
+                
+            # 2. Extrair o Período
+            # Usa (?: de)? para aceitar tanto "Período 01/01..." quanto "Período de 01/01..."
+            # Ex: "Extrato (Período de 01/01/2025 a 31/01/2025)"
+            match_periodo = re.search(
+                r'Período(?: de)?\s+(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', 
+                texto, 
+                re.IGNORECASE
+            )
+            
+            if match_periodo:
+                data_inicio = match_periodo.group(1).replace('/', '-')
+                data_fim = match_periodo.group(2).replace('/', '-')
+                periodo = f"{data_inicio}_{data_fim}"
+                
+            return cliente, periodo
 
     def _extract_itau4(self, texto):
         """Extrai nome e período do Itaú4"""
@@ -638,12 +632,221 @@ class RenomeadorExtrato:
         
         return cliente, periodo
         
+    def _extract_santander1(self, texto):
+            """Extrai nome e período do Santander1"""
+            cliente = None
+            periodo = None
+            
+            # Procurar o nome do cliente.
+            # Padrão: Pega tudo no início da linha até chegar em "Agência:", ignorando possíveis números no meio
+            # Ex: "TEREZA GABRIELA FERREIRA GOMIDES 0933888 Agência: 3222 Conta: 130029819"
+            match_cliente = re.search(r'^(.+?)(?:\s+\d+)?\s+Agência:', texto, re.MULTILINE | re.IGNORECASE)
+            if match_cliente:
+                cliente = match_cliente.group(1).strip()
+                
+            # Procurar o período
+            # Ex: "Períodos: 01/10/2025 a 31/10/2025"
+            match_periodo = re.search(
+                r'Períodos?:\s*(\d{2}/\d{2}/\d{4})\s+a\s+(\d{2}/\d{2}/\d{4})', 
+                texto, 
+                re.IGNORECASE
+            )
+            
+            if match_periodo:
+                data_inicio = match_periodo.group(1).replace('/', '-')
+                data_fim = match_periodo.group(2).replace('/', '-')
+                periodo = f"{data_inicio}_{data_fim}"
+                
+            return cliente, periodo
     
+    def _extract_caixa(self, texto):
+        """Extrai nome e período da Caixa"""
+        cliente = None
+        periodo = None
+        
+        # Procurar nome do cliente
+        # Ex: "Cliente: BAR LANCH REST SABOR DE LAVRAS"
+        match_cliente = re.search(r'Cliente:\s*(.+)', texto, re.IGNORECASE)
+        if match_cliente:
+            cliente = match_cliente.group(1).strip()
+            
+        # Procurar o mês
+        # Ex: "Mês: Janeiro/2026"
+        match_mes = re.search(r'Mês:\s*([A-Za-zçÇ]+)[\s/]*(\d{4})', texto, re.IGNORECASE)
+        if match_mes:
+            mes = match_mes.group(1).strip()
+            ano = match_mes.group(2).strip()
+            # Retorna no formato "Janeiro 2026" para o _formatar_periodo converter para "01-2026"
+            periodo = f"{mes} {ano}"
+            
+        return cliente, periodo
     
+    def _extract_efi1(self, texto):
+        """Extrai nome e período do Efi2"""
+        cliente = None
+        periodo = None
+        
+        linhas = texto.splitlines()
+        # Removemos linhas vazias para garantir que a próxima linha seja de fato o nome
+        linhas_nao_vazias = [l.strip() for l in linhas if l.strip()]
+        
+        # 1. Procurar o cliente (linha após a Ouvidoria)
+        for i, linha in enumerate(linhas_nao_vazias):
+            if 'Ouvidoria:' in linha:
+                # O nome do cliente estará na linha imediatamente abaixo
+                if i + 1 < len(linhas_nao_vazias):
+                    cliente = linhas_nao_vazias[i + 1]
+                break # Para a busca após encontrar
+                
+        # 2. Procurar o período
+        # Procura a palavra "Período" seguida pelas datas (mesmo que haja quebra de linha entre elas)
+        match_periodo = re.search(
+            r'Período\s+(\d{2}/\d{2}/\d{4})\s*-\s*(\d{2}/\d{2}/\d{4})', 
+            texto, 
+            re.IGNORECASE
+        )
+        
+        if match_periodo:
+            data_inicio = match_periodo.group(1).replace('/', '-')
+            data_fim = match_periodo.group(2).replace('/', '-')
+            periodo = f"{data_inicio}_{data_fim}"
+            
+        return cliente, periodo
+    
+    def _extract_itau3(self, texto):
+        """Extrai nome e período do Itaú3"""
+        cliente = None
+        periodo = None
+        
+        linhas = texto.splitlines()
+        # Limpar linhas em branco para garantir que a contagem seja exata
+        linhas_nao_vazias = [l.strip() for l in linhas if l.strip()]
+        
+        # 1. Extrair o nome (Quarta linha, que corresponde ao índice 3)
+        if len(linhas_nao_vazias) >= 4:
+            cliente = linhas_nao_vazias[3]
+            
+        # 2. Extrair o período (Ex: "dez 2025")
+        # Busca o mês abreviado seguido do ano (com \b para garantir que são palavras isoladas)
+        match_periodo = re.search(
+            r'\b(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s+(\d{4})\b', 
+            texto, 
+            re.IGNORECASE
+        )
+        
+        if match_periodo:
+            mes = match_periodo.group(1).lower()
+            ano = match_periodo.group(2)
+            # Retorna "dez 2025". Sua função _formatar_periodo vai capturar isso
+            # na regra (r'(dezembro|dez)\s*(?:de\s*)?(\d{4})') e transformar em "12-2025"
+            periodo = f"{mes} {ano}"
+            
+        return cliente, periodo
+    
+    def _extract_santander2(self, texto):
+        """Extrai nome e período do Santander2"""
+        cliente = None
+        periodo = None
+        
+        linhas = texto.splitlines()
+        linhas_nao_vazias = [l.strip() for l in linhas if l.strip()]
+        
+        for i, linha in enumerate(linhas_nao_vazias):
+            # 1. Procurar a linha que contém "Resumo -" para pegar o período
+            # Ex: "Resumo - janeiro/2026"
+            if 'resumo -' in linha.lower():
+                match_periodo = re.search(r'Resumo\s*-\s*([A-Za-zçÇ]+)[/ -]*(\d{4})', linha, re.IGNORECASE)
+                if match_periodo:
+                    mes = match_periodo.group(1)
+                    ano = match_periodo.group(2)
+                    # Passamos com espaço (ex: "janeiro 2026") para o _formatar_periodo converter para 01-2026
+                    periodo = f"{mes} {ano}"
+            
+            # 2. Procurar a linha "Nome" para pegar o cliente na linha seguinte
+            if linha.lower() == 'nome':
+                if i + 1 < len(linhas_nao_vazias):
+                    possivel_nome = linhas_nao_vazias[i + 1]
+                    # Checagem de segurança para não pegar outra palavra-chave se o nome vier vazio
+                    if possivel_nome.lower() not in ['agência', 'agencia', 'conta']:
+                        cliente = possivel_nome
+                        
+        return cliente, periodo
+    
+    def _extract_bradesco(self, texto):
+            """Extrai nome e período do Bradesco"""
+            cliente = None
+            periodo = None
+            
+            # Usamos o texto original (com linhas vazias) para garantir a posição exata
+            linhas = texto.splitlines()
+            linhas_nao_vazias = [l.strip() for l in linhas if l.strip()]
+            
+            # 1. Extrair o Período (Sempre na 4ª linha do texto bruto)
+            if len(linhas) >= 4:
+                # Índice 3 equivale à 4ª linha
+                linha_periodo = linhas[3] 
+                
+                # Busca duas datas no formato DD/MM/YYYY separadas por qualquer espaço ou caractere
+                match_periodo = re.search(r'(\d{2}/\d{2}/\d{4}).*?(\d{2}/\d{2}/\d{4})', linha_periodo)
+                
+                # Fallback: Se por acaso o leitor de PDF bagunçar a linha 4, ele procura as datas no texto todo
+                if not match_periodo:
+                    match_periodo = re.search(r'(\d{2}/\d{2}/\d{4})\s+(\d{2}/\d{2}/\d{4})', texto)
+                    
+                if match_periodo:
+                    data_inicio = match_periodo.group(1).replace('/', '-')
+                    data_fim = match_periodo.group(2).replace('/', '-')
+                    periodo = f"{data_inicio}_{data_fim}"
+                    
+            # 2. Extrair o Nome
+            # Procuramos a linha "Extrato Mensal / Por Período" e pegamos o cliente na linha seguinte
+            for i, linha in enumerate(linhas_nao_vazias):
+                if 'Extrato Mensal / Por Período' in linha:
+                    if i + 1 < len(linhas_nao_vazias):
+                        linha_nome_cnpj = linhas_nao_vazias[i + 1]
+                        # Ex: "BRASART COMERCIO LTDA | CNPJ: 043.998.514/0001-90"
+                        partes = linha_nome_cnpj.split('|')
+                        if partes:
+                            cliente = partes[0].strip()
+                    break # Encontrou, pode parar de procurar
+                    
+            return cliente, periodo
+
     def _extract_sicoob2(self, texto):
         """Extrai nome e período do Sicoob2"""
-        return self._extract_sicoob1(texto)  # Mesmo padrão
+        cliente = None
+        periodo = None
+        
+        linhas = texto.splitlines()
+        linhas_nao_vazias = [l.strip() for l in linhas if l.strip()]
+        
+        for i, linha in enumerate(linhas_nao_vazias):
+            # 1. Extrair o Nome (linha após "Conta:")
+            if linha.lower() == 'conta:':
+                if i + 1 < len(linhas_nao_vazias):
+                    linha_conta = linhas_nao_vazias[i + 1]
+                    # Ex: "27.520-4 / OUROTEC TECNOLOGIA LTDA."
+                    # Dividimos pela barra e pegamos a segunda parte
+                    partes = linha_conta.split('/')
+                    if len(partes) > 1:
+                        cliente = partes[1].strip()
+            
+            # 2. Extrair o Período (linha após "Periodo:" ou "Período:")
+            if linha.lower() in ['periodo:', 'período:']:
+                if i + 1 < len(linhas_nao_vazias):
+                    linha_periodo = linhas_nao_vazias[i + 1]
+                    # Ex: "01/04/2025 - 30/04/2025"
+                    match_periodo = re.search(r'(\d{2}/\d{2}/\d{4})\s*-\s*(\d{2}/\d{2}/\d{4})', linha_periodo)
+                    if match_periodo:
+                        data_inicio = match_periodo.group(1).replace('/', '-')
+                        data_fim = match_periodo.group(2).replace('/', '-')
+                        periodo = f"{data_inicio}_{data_fim}"
+                        
+        return cliente, periodo
     
+    
+    
+
     def _extract_sicoob3(self, texto):
         """Extrai nome e período do Sicoob3"""
         return self._extract_sicoob1(texto)  # Mesmo padrão
@@ -673,75 +876,13 @@ class RenomeadorExtrato:
     def _extract_itau2(self, texto):
         """Extrai nome e período do Itaú2"""
         return self._extract_itau(texto)
-    
-    def _extract_itau3(self, texto):
-        """Extrai nome e período do Itaú3"""
         return self._extract_itau(texto)
     
-    def _extract_caixa(self, texto):
-        """Extrai nome e período da Caixa"""
-        cliente = None
-        periodo = None
-        
-        # Procurar nome após "Titular"
-        match_cliente = re.search(r'Titular[:\s]+([\w\s]+)', texto, re.IGNORECASE)
-        if match_cliente:
-            cliente = match_cliente.group(1).strip()
-        
-        # Procurar período
-        match_periodo = re.search(r'Período[:\s]+(\d{2}/\d{2}/\d{4})', texto, re.IGNORECASE)
-        if match_periodo:
-            periodo = match_periodo.group(1)
-        
-        return cliente, periodo
-    
 
-    
-    def _extract_bradesco(self, texto):
-        """Extrai nome e período do Bradesco"""
-        cliente = None
-        periodo = None
-        
-        # Procurar nome
-        match_cliente = re.search(r'(?:Nome|Cliente)[:\s]+([\w\s]+)', texto, re.IGNORECASE)
-        if match_cliente:
-            cliente = match_cliente.group(1).strip()
-        
-        # Procurar período
-        match_periodo = re.search(r'Período[:\s]+(\d{2}/\d{2}/\d{4})', texto, re.IGNORECASE)
-        if match_periodo:
-            periodo = match_periodo.group(1)
-        
-        return cliente, periodo
-    
-    def _extract_santander1(self, texto):
-        """Extrai nome e período do Santander1"""
-        cliente = None
-        periodo = None
-        
-        linhas = texto.splitlines()
-        for linha in linhas:
-            # Nome
-            if 'titular' in linha.lower():
-                match = re.search(r'Titular[:\s]+([\w\s]+)', linha, re.IGNORECASE)
-                if match:
-                    cliente = match.group(1).strip()
-            
-            # Período
-            if 'período' in linha.lower():
-                match = re.search(r'(\d{2}/\d{2}/\d{4})', linha)
-                if match:
-                    periodo = match.group(1)
-        
-        return cliente, periodo
-    
-    def _extract_santander2(self, texto):
-        """Extrai nome e período do Santander2"""
         return self._extract_santander1(texto)
-    
 
-    def _extract_efi1(self, texto):
-        """Extrai nome e período do Efi1"""
+    def _extract_efi2(self, texto):
+        """Extrai nome e período do Efi2"""
         cliente = None
         periodo = None
         
@@ -757,7 +898,7 @@ class RenomeadorExtrato:
         
         return cliente, periodo
     
-    def _extract_efi2(self, texto):
+    
         """Extrai nome e período do Efi2"""
         cliente = None
         periodo = None

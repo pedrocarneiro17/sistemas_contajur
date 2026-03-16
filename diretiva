@@ -1,1 +1,1 @@
-pyinstaller --onefile --windowed --name="Extrator" --paths=. --add-data "extrator_contajur;extrator_contajur" processador_lote/processadorgui.py
+pyinstaller --onefile --windowed --name="Extrator" --icon=icone.ico --paths=. --add-data "extrator_contajur;extrator_contajur" processador_lote/processadorgui.py

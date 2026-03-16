@@ -81,24 +81,20 @@ def identificar_banco(text):
     # InfinitePay
     if 'ajuda@infinitepay.io' in text:
         return "InfinitePay"
-
-    # Bradesco
-    if '00632' in text:
-        return "Bradesco"
     
     # Sicoob (variações)
     if ("https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text):
         return "Sicoob2"
     
     if 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB – SISBR' in text or 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB - SISBR' in text:
-        
-
         return "Sicoob1"
     
     if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text or 'SISBR - SISTEMA DE INFORMÁTICA DO SICOOB' in  text:
         return "Sicoob3"
 
-
+    # Bradesco
+    if '00632' in text:
+        return "Bradesco"
 
     # Itaú (variações)
 

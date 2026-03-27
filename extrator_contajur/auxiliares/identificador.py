@@ -86,7 +86,7 @@ def identificar_banco(text):
     if ("https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text):
         return "Sicoob2"
     
-    if 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB – SISBR' in text or 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB - SISBR' in text:
+    if 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB – SISBR' in text or 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB - SISBR' in text or 'COOP.: 4108-4 / SICOOB CREDIMEPI' in text:
         return "Sicoob1"
     
     if 'SICOOB - Sistema de Cooperativas de Crédito do Brasil' in text or 'SICOOB -Sistema de Cooperativas de Crédito do Brasil' in text or 'SISBR - SISTEMA DE INFORMÁTICA DO SICOOB' in  text:

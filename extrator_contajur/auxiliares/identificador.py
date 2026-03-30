@@ -14,7 +14,7 @@ def identificar_banco(text):
     palavras = text.split()
     
     # Itaú4
-    if 'Fale Conosco: www.itau.com.br/empresas.' in text:
+    if 'Fale Conosco: www.itau.com.br/empresas.' in text or 'Lançamentos do período:' in text or 'Lançamentosdoperíodo:':
         return "Itaú4"
     
     # Banco Inter 

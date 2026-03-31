@@ -5,55 +5,59 @@ def preprocess_text(text):
     """
     Pré-processa o texto do extrato do Sicredi para extrair transações.
     O valor considerado é sempre o primeiro valor após a descrição.
+    Linhas sem data são concatenadas à descrição da transação anterior.
+    Transações são consideradas apenas a partir da linha 7 (índice 6).
     """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
-    transactions = []
+    lines = lines[6:]  # ignora as 6 primeiras linhas
 
-    # Regex para detectar linhas de transações com data no início
+    transactions = []
     date_pattern = r"\d{2}/\d{2}/\d{4}"
     value_pattern = r"-?\d{1,3}(?:\.\d{3})*,\d{2}"
 
     for line in lines:
-        if not re.match(rf"^{date_pattern}", line):
-            continue  # pula cabeçalhos e rodapés
+        if re.match(rf"^{date_pattern}", line):
+            # Linha com data: nova transação
+            date_match = re.match(rf"^({date_pattern})\s+", line)
+            if not date_match:
+                continue
 
-        # Encontra data
-        date_match = re.match(rf"^({date_pattern})\s+", line)
-        if not date_match:
-            continue
+            data = date_match.group(1)
+            resto = line[len(data):].strip()
 
-        data = date_match.group(1)
-        resto = line[len(data):].strip()
+            valores = re.findall(value_pattern, resto)
+            if not valores:
+                continue
 
-        # Encontra todos os valores numéricos (como '100.000,00', '-1.000,50' etc.)
-        valores = re.findall(value_pattern, resto)
+            valor_bruto = valores[0]
+            tipo = "D" if valor_bruto.startswith("-") else "C"
+            valor_sem_sinal = valor_bruto.lstrip("-")
+            valor_formatado = re.sub(r",00$", "", valor_sem_sinal)
+            descricao = re.split(value_pattern, resto, maxsplit=1)[0].strip()
 
-        if not valores:
-            continue
+            transactions.append({
+                "Data": data,
+                "Descrição": descricao,
+                "Valor": valor_formatado,
+                "Tipo": tipo
+            })
 
-        valor_bruto = valores[0]  # o primeiro é o valor da transação
-        tipo = "D" if valor_bruto.startswith("-") else "C"
+        else:
+            # Linha sem data: continuação da transação anterior
+            if not transactions:
+                continue  # nada para concatenar ainda
 
-        # Remove o sinal para armazenar o valor
-        valor_sem_sinal = valor_bruto.lstrip("-")
-        
-        # Remove ,00 se for inteiro (ex: 1.000,00 → 1.000)
-        valor_formatado = re.sub(r",00$", "", valor_sem_sinal)
-
-        # Remove o valor do texto para capturar a descrição
-        descricao = re.split(value_pattern, resto, maxsplit=1)[0].strip()
-
-        transactions.append({
-            "Data": data,
-            "Descrição": descricao,
-            "Valor": valor_formatado,
-            "Tipo": tipo
-        })
+            # Remove possíveis valores numéricos soltos que não fazem parte da descrição
+            fragmento = re.split(value_pattern, line, maxsplit=1)[0].strip()
+            if fragmento:
+                transactions[-1]["Descrição"] += " " + fragmento
 
     return transactions
+
 
 def extract_transactions(transactions):
     return transactions
+
 
 def process(text):
     return process_transactions(text, preprocess_text, extract_transactions)

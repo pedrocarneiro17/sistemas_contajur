@@ -13,6 +13,10 @@ def identificar_banco(text):
         return "Erro: Texto vazio ou ilegível"
     palavras = text.split()
     
+    # Sicredi
+    if 'Sicredi Fone' in text:
+        return "Sicredi"
+    
     # Itaú4
     if 'Fale Conosco: www.itau.com.br/empresas.' in text or 'Lançamentos do período:' in text or 'Lançamentosdoperíodo:':
         return "Itaú4"
@@ -35,10 +39,6 @@ def identificar_banco(text):
 
     if 'Efí S.A.' in text and 'Filtros do' in text:
         return "Efi2"
-    
-        # Sicredi
-    if 'Sicredi Fone' in text:
-        return "Sicredi"
     
     # PagBank
     if 'PagSeguro Internet S/A' in text or '290-PagSeguroInternetS/A' in text:

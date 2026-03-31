@@ -40,6 +40,8 @@ def read_pdf(file):
             return None, "Nenhum texto extraído do PDF"
         
         banco_identificado = identificar_banco(text)
+        #print(f"Banco identificado: {banco_identificado}")  
+
         return text, banco_identificado
         
     except Exception as e:

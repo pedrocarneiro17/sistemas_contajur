@@ -18,7 +18,7 @@ def identificar_banco(text):
         return "Sicredi"
     
     # Itaú4
-    if 'Fale Conosco: www.itau.com.br/empresas.' in text or 'Lançamentos do período:' in text or 'Lançamentosdoperíodo:':
+    if 'Fale Conosco: www.itau.com.br/empresas.' in text or 'Lançamentos do período:' in text or 'Lançamentosdoperíodo:' in text:
         return "Itaú4"
     
     # Banco Inter 

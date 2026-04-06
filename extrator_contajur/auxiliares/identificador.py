@@ -14,7 +14,7 @@ def identificar_banco(text):
     palavras = text.split()
     
     # Sicredi
-    if 'Sicredi Fone' in text:
+    if 'Sicredi Fone' in text or 'SicrediFone' in text:
         return "Sicredi"
     
     # Itaú4

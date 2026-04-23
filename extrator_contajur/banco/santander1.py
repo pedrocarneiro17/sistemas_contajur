@@ -15,7 +15,7 @@ def preprocess_text(text):
         "Aplicativo Santander", "Internet Banking Empresarial",
         "Agência:", "Conta:", "Período", "Data/Hora:", "Saldo disponível",
         "Saldo de ContaMax", "Entenda a composição", "Central de Atendimento",
-        "SAC", "Ouvidoria", "Data Histórico", "Saldo do dia",
+        "SAC", "Ouvidoria", "Data Histórico", "Saldo do dia", "Saldo anterior",
         "4004-2125", "0800",
     }
 

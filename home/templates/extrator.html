@@ -226,16 +226,20 @@ Error: ${data.error || 'N/A'}
                         <p><strong>${data.successful_files}</strong> de <strong>${data.total_files}</strong> arquivos processados com sucesso.</p>
                         <h4>Detalhes:</h4>
                         <ul>
-                            ${data.results.map(result => 
+                            ${data.results.map(result =>
                                 `<li><strong>${result.filename}</strong>: ${result.success ? '✅ Sucesso' : '❌ ' + (result.error || 'Erro desconhecido')}</li>`
                             ).join('')}
                         </ul>
-                        ${data.successful_files > 0 ? 
-                            `<a href="/api/download-zip" class="download-btn" download>📥 Baixar CSVs (ZIP)</a>` : 
-                            ''
-                        }
                     </div>
                 `;
+                if (data.successful_files > 0) {
+                    const zipResp = await fetch('/api/download-zip');
+                    const blob = await zipResp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = 'extratos.zip'; a.click();
+                    URL.revokeObjectURL(url);
+                }
             } else {
                 // Caso de falha (incluindo um único arquivo)
                 results.innerHTML = `

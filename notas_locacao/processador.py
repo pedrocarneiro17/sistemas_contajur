@@ -143,15 +143,63 @@ def _generate_f100_line(model, invoice_data, emitente_cnpj):
         return f'"{v}"'
 
     valor = invoice_data.get("valor_operacao", 0.0)
+    v = f"{valor:.2f}"
+    e = '""'
+
     fields = [
-        str(model["tipo_documento"]),
-        q(model["indicador_operacao"]),
-        q(emitente_cnpj),
-        q(invoice_data.get("data_operacao", "")),
-        f"{valor:.2f}",
-        q(invoice_data.get("condicao_pagamento", "P")),
-        str(invoice_data.get("numero_documento", "")),
-        q(model["cst_pis"]),
+        str(model["tipo_documento"]),                               # 01 tipo documento (I)
+        q(model["indicador_operacao"]),                             # 02 indicador operação (I)
+        q(emitente_cnpj),                                           # 03 CNPJ (A)
+        e,                                                          # 04 produto (A) - vazio
+        q(invoice_data.get("data_operacao", "")),                   # 05 data (A)
+        str(invoice_data.get("numero_documento", "")),              # 06 número documento (I)
+        q(invoice_data.get("condicao_pagamento", "P")),             # 07 condição pagamento (A)
+        v,                                                          # 08 valor operação (N)
+        e,                                                          # 09 conta débito (A) - vazio
+        e,                                                          # 10 conta crédito (A) - vazio
+        q(model["cst_pis"]),                                        # 11 CST PIS (A)
+        v,                                                          # 12 valor base PIS (N) = valor fatura
+        e,                                                          # 13 alíquota PIS (N) - vazio
+        e,                                                          # 14 valor PIS operação (N) - vazio
+        q(model["cst_pis"]),                                        # 15 CST Cofins (A) = mesmo CST
+        v,                                                          # 16 valor base Cofins (N) = valor fatura
+        e,                                                          # 17 alíquota Cofins (N) - vazio
+        e,                                                          # 18 valor Cofins operação (N) - vazio
+        e,                                                          # 19 natureza base cálculo (A) - vazio
+        e,                                                          # 20 indicador origem crédito (I) - vazio
+        e,                                                          # 21 descrição complementar (A) - vazio
+        e,                                                          # 22 centro de custo (A) - vazio
+        e,                                                          # 23 valor PIS retido (N) - vazio
+        e,                                                          # 24 cod. recolhimento PIS retido (I) - vazio
+        e,                                                          # 25 valor Cofins retido (N) - vazio
+        e,                                                          # 26 cod. recolhimento Cofins retido (I) - vazio
+        e,                                                          # 27 valor CSLL retido (N) - vazio
+        e,                                                          # 28 cod. recolhimento CSLL retido (I) - vazio
+        e,                                                          # 29 ind. natureza retenção (I) - vazio
+        e,                                                          # 30 inscrição estadual (A) - vazio
+        e,                                                          # 31 UF participante (A) - vazio
+        e,                                                          # 32 natureza receita (A) - vazio
+        e,                                                          # 33 tabela natureza receita (A) - vazio
+        e,                                                          # 34 atividade CPRB (A) - vazio
+        e,                                                          # 35 valor IR retido (N) - vazio
+        e,                                                          # 36 cod. recolhimento IR (I) - vazio
+        e,                                                          # 37 valor ISS retido (N) - vazio
+        e,                                                          # 38 cod. recolhimento ISS (I) - vazio
+        e,                                                          # 39 valor total bruto Factoring (N) - vazio
+        e,                                                          # 40 valor IOF Factoring (N) - vazio
+        e,                                                          # 41 valor tarifas Factoring (N) - vazio
+        e,                                                          # 42 valor líquido Factoring (N) - vazio
+        e,                                                          # 43 outras deduções INSS (N) - vazio
+        e,                                                          # 44 percentual redução base INSS (N) - vazio
+        e,                                                          # 45 valor materiais terceiros (N) - vazio
+        e,                                                          # 46 valor subempreitadas (N) - vazio
+        e,                                                          # 47 cod. recolhimento INSS (I) - vazio
+        e,                                                          # 48 tipo serviço (I) - vazio
+        e,                                                          # 49 valor base cálculo INSS retida (N) - vazio
+        e,                                                          # 50 valor materiais próprios (N) - vazio
+        e,                                                          # 51 código participante (A) - vazio
+        e,                                                          # 52 número contrato aluguel (A) - vazio
+        e,                                                          # 53 valor comissão (N) - vazio
     ]
     return ",".join(fields)
 

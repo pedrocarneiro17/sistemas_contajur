@@ -129,7 +129,7 @@
                     const blob = await response.blob();
                     const url  = URL.createObjectURL(blob);
                     const a    = document.createElement('a');
-                    a.href = url; a.download = 'notas_f100.zip'; a.click();
+                    a.href = url; a.download = 'notas.zip'; a.click();
                     URL.revokeObjectURL(url);
 
                     results.innerHTML = `

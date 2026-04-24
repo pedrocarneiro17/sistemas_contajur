@@ -116,13 +116,13 @@ def upload():
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
         for r in successful:
-            txt_name = f"nota_{r['filename'].rsplit('.', 1)[0]}_F100.txt"
+            txt_name = f"{r['filename'].rsplit('.', 1)[0]}.txt"
             zf.writestr(txt_name, r['linha_f100'] + '\n')
     zip_buffer.seek(0)
 
     return send_file(
         zip_buffer,
         as_attachment=True,
-        download_name='notas_f100.zip',
+        download_name='notas.zip',
         mimetype='application/zip',
     )

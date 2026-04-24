@@ -54,7 +54,7 @@ def _clean_cnpj(text):
 def _parse_date_br(text):
     text = text.strip()
     try:
-        return datetime.strptime(text, "%d/%m/%Y").strftime("%Y%m%d")
+        return datetime.strptime(text, "%d/%m/%Y").strftime("%d%m%Y")
     except ValueError:
         return text
 

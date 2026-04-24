@@ -13,6 +13,7 @@ from boletos.app import boletos_bp
 from retencao_notas.app import retencao_bp
 from entrada_saida.app import entrada_saida_bp
 from inventario.app import inventario_bp
+from api_externa.app import api_externa_bp
 
 # Configurar o Flask
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,10 +27,11 @@ app.config['MAX_CONTENT_LENGTH'] = 80 * 1024 * 1024  # 100MB max file size
 # Registrar Blueprints
 app.register_blueprint(extrator_bp)
 app.register_blueprint(conferencia_bp)
-app.register_blueprint(boletos_bp) 
+app.register_blueprint(boletos_bp)
 app.register_blueprint(retencao_bp)
 app.register_blueprint(entrada_saida_bp)
 app.register_blueprint(inventario_bp)
+app.register_blueprint(api_externa_bp)
 
 # Rota principal
 @app.route('/')

@@ -15,6 +15,7 @@ from entrada_saida.app import entrada_saida_bp
 from inventario.app import inventario_bp
 from api_externa.app import api_externa_bp
 from notas_locacao.app import notas_locacao_bp
+from extrator_d.app import extrator_d_bp
 
 # Configurar o Flask
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +35,7 @@ app.register_blueprint(entrada_saida_bp)
 app.register_blueprint(inventario_bp)
 app.register_blueprint(api_externa_bp)
 app.register_blueprint(notas_locacao_bp)
+app.register_blueprint(extrator_d_bp)
 
 # Rota principal
 @app.route('/')

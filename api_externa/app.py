@@ -12,7 +12,7 @@ api_externa_bp = Blueprint('api_externa', __name__, url_prefix='/api')
 CORS(api_externa_bp)
 
 BANKS_USING_PDF2 = {
-    'Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 'Itaú4',
+    'Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 'Sicredi', 'Itaú4',
     'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago'
 }
 

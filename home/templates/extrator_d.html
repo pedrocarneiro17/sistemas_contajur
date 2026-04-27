@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrator Débitos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='extrator.css') }}">
+    <style>
+        .busca-item { background: var(--bs-secondary-bg); border: 1px solid var(--bs-border-color); border-radius: var(--bs-border-radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+        .badge-blue { background-color: #BDD7EE; color: #1a1a1a; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-body-tertiary">
+
+    <div class="top-buttons">
+        <a href="/" class="btn btn-secondary">Voltar</a>
+        <button id="theme-toggle" class="btn btn-outline-secondary"></button>
+    </div>
+
+    <div class="container card shadow-sm p-4 p-md-5 mt-5">
+        <div class="text-center mb-4">
+            <h1 class="h3">Extrator de Débitos</h1>
+            <p class="text-body-secondary">Filtra transações tipo D e destaca em azul as que contêm o nome ou CPF informado.</p>
+        </div>
+
+        <!-- Upload CSV -->
+        <div class="upload-area text-center p-4 rounded" id="uploadArea">
+            <p class="mb-2">📁 Arraste o PDF do extrato aqui ou</p>
+            <button class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">Selecionar PDF</button>
+            <input type="file" id="fileInput" class="d-none" accept=".pdf">
+        </div>
+        <div id="fileInfo" class="mt-2 text-body-secondary small"></div>
+
+        <!-- Buscas -->
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Buscas <span class="badge-blue ms-1">destacadas em azul</span></h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="addBusca()">+ Adicionar</button>
+            </div>
+            <div id="buscaList"></div>
+            <p class="text-body-secondary small mt-1">
+                CPF: informe os 11 dígitos completos ou apenas os 6 do meio. Nome: busca parcial, sem distinção de maiúsculas.
+            </p>
+        </div>
+
+        <div class="d-grid gap-2 mt-3">
+            <button class="btn btn-success btn-lg" id="processBtn" onclick="processFiles()" disabled>Gerar Excel</button>
+        </div>
+
+        <div class="loading text-center mt-4" id="loading">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Processando...</p>
+        </div>
+
+        <div id="results" class="mt-4"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ── Tema ──────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707"/></svg>`;
+            const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162h1.212a.217.217 0 0 1 .162.321l-.988.81.397 1.15a.217.217 0 0 1-.312.222l-1.012-.662-1.012.662a.217.217 0 0 1-.312-.222l.397-1.15-.988-.81a.217.217 0 0 1 .162-.321h1.212zM13.379 5.79c-.086.244-.484.244-.57 0l-.195-.585a.217.217 0 0 1 .162-.321h.608a.217.217 0 0 1 .162.321z"/></svg>`;
+            const setTheme = (t) => { htmlEl.setAttribute('data-bs-theme', t); themeToggle.innerHTML = t === 'dark' ? sunIcon : moonIcon; localStorage.setItem('theme', t); };
+            themeToggle.addEventListener('click', () => setTheme(htmlEl.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark'));
+            setTheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        });
+    </script>
+
+    <script>
+        let selectedFile = null;
+
+        // ── Arquivo ───────────────────────────────────────────────────────────
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput  = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault(); uploadArea.classList.remove('dragover');
+            const f = e.dataTransfer.files[0];
+            if (f) setFile(f);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files[0]) setFile(e.target.files[0]); });
+
+        function setFile(f) {
+            selectedFile = f;
+            document.getElementById('fileInfo').textContent = `📄 ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`;
+            updateBtn();
+        }
+
+        // ── Buscas ────────────────────────────────────────────────────────────
+        let buscaCount = 0;
+
+        function addBusca() {
+            const idx = buscaCount++;
+            const div = document.createElement('div');
+            div.className = 'busca-item d-flex gap-2 align-items-center';
+            div.id = `busca-${idx}`;
+            div.innerHTML = `
+                <input type="text" class="form-control form-control-sm" placeholder="Nome (opcional)" id="nome-${idx}">
+                <input type="text" class="form-control form-control-sm" placeholder="CPF ou 6 dígitos (opcional)" id="cpf-${idx}" style="max-width:200px">
+                <button class="btn btn-sm btn-outline-danger" onclick="removeBusca(${idx})">✕</button>
+            `;
+            document.getElementById('buscaList').appendChild(div);
+            updateBtn();
+        }
+
+        function removeBusca(idx) {
+            document.getElementById(`busca-${idx}`)?.remove();
+            updateBtn();
+        }
+
+        function getBuscas() {
+            const nomes = [], cpfs = [];
+            document.querySelectorAll('[id^="nome-"]').forEach(el => {
+                const idx = el.id.split('-')[1];
+                nomes.push(el.value);
+                cpfs.push(document.getElementById(`cpf-${idx}`)?.value || '');
+            });
+            return { nomes, cpfs };
+        }
+
+        function updateBtn() {
+            document.getElementById('processBtn').disabled = !selectedFile;
+        }
+
+        // ── Processamento ─────────────────────────────────────────────────────
+        async function processFiles() {
+            if (!selectedFile) return;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('processBtn').disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                const { nomes, cpfs } = getBuscas();
+                nomes.forEach(n => formData.append('nome[]', n));
+                cpfs.forEach(c => formData.append('cpf[]', c));
+
+                const response = await fetch('/extrator-d/upload', { method: 'POST', body: formData });
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (response.ok && response.headers.get('Content-Type')?.includes('spreadsheetml')) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const disposition = response.headers.get('Content-Disposition') || '';
+                    const match = disposition.match(/filename="?([^"]+)"?/);
+                    a.download = match ? match[1] : 'debitos.xlsx';
+                    a.href = url; a.click();
+                    URL.revokeObjectURL(url);
+
+                    document.getElementById('results').innerHTML = `
+                        <div class="alert alert-success mt-3">
+                            ✅ Excel gerado! O download iniciou automaticamente.
+                        </div>`;
+                } else {
+                    const data = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+                    document.getElementById('results').innerHTML = `
+                        <div class="alert alert-danger mt-3">❌ ${data.error}</div>`;
+                }
+            } catch (err) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').innerHTML = `
+                    <div class="alert alert-danger mt-3">❌ Erro de conexão: ${err.message}</div>`;
+            }
+
+            document.getElementById('processBtn').disabled = false;
+        }
+
+        // Começa com uma busca já aberta
+        addBusca();
+    </script>
+</body>
+</html>

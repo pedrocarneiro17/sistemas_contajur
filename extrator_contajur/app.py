@@ -175,7 +175,7 @@ def process_extracts():
                         continue
 
                     if identified_bank in ['Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 'Sicredi', 'Itaú4',
-                                         'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago']:
+                                         'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago', 'Caixa2']:
                         try:
                             file.seek(0)
                             text = read_pdf2(file)
@@ -347,6 +347,63 @@ def identify_bank():
             })
     except Exception as e:
         return jsonify({'error': f'Erro interno do servidor: {str(e)}'}), 500
+
+@extrator_bp.route('/api/debug-parser', methods=['POST'])
+def debug_parser():
+    """
+    Debug completo: extrai texto bruto via PyMuPDF e roda o parser do banco
+    identificado, retornando cada etapa como JSON.
+    """
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'Nenhum arquivo enviado'}), 400
+        file = request.files['file']
+
+        # 1. Identificar banco (pdfplumber)
+        file.seek(0)
+        text_plumber, identified_bank = read_pdf(file)
+
+        result = {
+            'banco': identified_bank,
+            'texto_pdfplumber_primeiras_500': (text_plumber or '')[:500],
+        }
+
+        # 2. Re-ler com PyMuPDF se necessário
+        BANKS_PDF2 = {'Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone',
+                      'Sicredi', 'Itaú4', 'Banco do Brasil1', 'Safra', 'Santander2',
+                      'Efi1', 'Efi2', 'Mercado Pago', 'Caixa2'}
+        raw_text = text_plumber or ''
+        if identified_bank in BANKS_PDF2:
+            file.seek(0)
+            raw_text = read_pdf2(file)
+            result['texto_pymupdf_primeiras_500'] = raw_text[:500]
+            result['texto_pymupdf_linhas'] = raw_text.splitlines()[:80]
+
+        # 3. Rodar o parser
+        try:
+            processor_fn = get_processor(identified_bank)
+            from .banco.caixa2 import preprocess_text as _pp
+            # tenta importar o preprocess do banco identificado dinamicamente
+            import importlib
+            mod_map = {
+                'Caixa2': 'extrator_contajur.banco.caixa2',
+                'Sicredi': 'extrator_contajur.banco.sicredi',
+            }
+            mod_name = mod_map.get(identified_bank)
+            if mod_name:
+                mod = importlib.import_module(mod_name)
+                transacoes = mod.preprocess_text(raw_text)
+                result['transacoes_encontradas'] = len(transacoes)
+                result['primeiras_5_transacoes'] = transacoes[:5]
+            else:
+                result['transacoes_encontradas'] = 'parser debug não implementado para este banco'
+        except Exception as pe:
+            result['parser_error'] = str(pe)
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @extrator_bp.route('/api/debug-file', methods=['POST'])
 def debug_file():

@@ -13,7 +13,7 @@ CORS(extrator_d_bp)
 
 BANKS_USING_PDF2 = {
     'Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 'Sicredi', 'Itaú4',
-    'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago'
+    'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago', 'Caixa2'
 }
 
 

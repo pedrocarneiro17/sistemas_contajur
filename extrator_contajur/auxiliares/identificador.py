@@ -58,6 +58,10 @@ def identificar_banco(text):
     if 'EXTRATOCONSOLIDADOINTELIGENTE' in text or 'EXTRATO CONSOLIDADO INTELIGENTE' in  text or 'EXTRATO CONSOLIDADO' in text:
         return "Santander2"
     
+    # Caixa2 (formato web – identificar antes do Caixa comum)
+    if 'Pessoas com deficiência auditiva Alô CAIXA' in text:
+        return "Caixa2"
+
     # Caixa
     if 'Sujeito a alteração até o final do expediente bancário' in text or 'Os lançamentos de extrato não estão disponíveis' in text or 'SAC CAIXA' in text:
         return "Caixa"

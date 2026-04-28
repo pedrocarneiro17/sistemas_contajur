@@ -6,6 +6,7 @@ from .itau2 import process as process_itau2
 from .itau3 import process as process_itau3
 from .itau4 import process as process_itau4
 from .caixa import process as process_caixa
+from .caixa2 import process as process_caixa2
 from .inter import process as process_inter
 from .nubank import process as process_nubank
 from .bradesco import process as process_bradesco
@@ -34,6 +35,7 @@ BANK_PROCESSORS = {
     "Itaú3": process_itau3,
     "Itaú4": process_itau4,
     "Caixa": process_caixa,
+    "Caixa2": process_caixa2,
     "Banco Inter": process_inter,
     "Nubank": process_nubank,
     "Bradesco": process_bradesco,

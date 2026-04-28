@@ -28,7 +28,7 @@ app.config['MAX_CONTENT_LENGTH'] = 80 * 1024 * 1024
 
 BANKS_USING_PDF2 = {
     'Asaas', 'Bradesco', 'Sicoob1', 'Sicoob2', 'Sicoob3', 'Stone', 'Sicredi', 'Itaú4',
-    'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago'
+    'Banco do Brasil1', 'Safra', 'Santander2', 'Efi1', 'Efi2', 'Mercado Pago', 'Caixa2'
 }
 
 

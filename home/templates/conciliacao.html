@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conciliação Contajur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='shared_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='boletos.css') }}">
+</head>
+<body class="bg-body-tertiary">
+
+    <div class="floating-elements"></div>
+
+    <div class="top-buttons">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Voltar</a>
+        <button id="theme-toggle" class="btn btn-outline-secondary"></button>
+    </div>
+
+    <div class="container py-5">
+        <div class="card shadow-sm p-4 p-md-5 mx-auto" style="max-width: 900px;">
+            <div class="text-center mb-4">
+                <h1 class="h3">Conciliação Contajur</h1>
+                <p class="text-body-secondary">Faça o upload do extrato bancário e da base contábil para gerar a conciliação.</p>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <h2 class="h4 card-title text-center text-primary mb-3">Extrato Bancário</h2>
+                    <div class="upload-box text-center p-3 rounded" id="uploadBoxExtrato">
+                        <p class="small text-body-secondary">📄 Arraste o CSV do extrato aqui ou</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('extratoInput').click()">Selecionar</button>
+                        <input type="file" id="extratoInput" class="d-none" accept=".csv">
+                        <div class="file-info mt-2" id="extratoFileInfo"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2 class="h4 card-title text-center text-primary mb-3">Base Contábil</h2>
+                    <div class="upload-box text-center p-3 rounded" id="uploadBoxBase">
+                        <p class="small text-body-secondary">📊 Arraste o CSV da base aqui ou</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('baseInput').click()">Selecionar</button>
+                        <input type="file" id="baseInput" class="d-none" accept=".csv">
+                        <div class="file-info mt-2" id="baseFileInfo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button class="btn btn-success btn-lg" id="processBtn" disabled>Processar Conciliação</button>
+            </div>
+
+            <div class="text-center mt-4">
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Processando...</p>
+                </div>
+                <div id="results" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ── Tema ──────────────────────────────────────────────────────────
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlEl = document.documentElement;
+            const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707"/></svg>`;
+            const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278"/><path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162h1.212a.217.217 0 0 1 .162.321l-.988.81.397 1.15a.217.217 0 0 1-.312.222l-1.012-.662-1.012.662a.217.217 0 0 1-.312-.222l.397-1.15-.988-.81a.217.217 0 0 1 .162-.321h1.212zM13.379 5.79c-.086.244-.484.244-.57 0l-.195-.585a.217.217 0 0 1 .162-.321h.608a.217.217 0 0 1 .162.321z"/></svg>`;
+            const setTheme = (theme) => {
+                htmlEl.setAttribute('data-bs-theme', theme);
+                themeToggle.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+                localStorage.setItem('theme', theme);
+            };
+            themeToggle.addEventListener('click', () => setTheme(htmlEl.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark'));
+            const storedTheme = localStorage.getItem('theme');
+            setTheme(storedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+            // ── Upload ────────────────────────────────────────────────────────
+            let selectedFiles = { extrato: null, base: null };
+            const processBtn = document.getElementById('processBtn');
+            const loading    = document.getElementById('loading');
+            const results    = document.getElementById('results');
+
+            const uploadConfig = {
+                extrato: {
+                    box:   document.getElementById('uploadBoxExtrato'),
+                    input: document.getElementById('extratoInput'),
+                    info:  document.getElementById('extratoFileInfo'),
+                },
+                base: {
+                    box:   document.getElementById('uploadBoxBase'),
+                    input: document.getElementById('baseInput'),
+                    info:  document.getElementById('baseFileInfo'),
+                }
+            };
+
+            const setupUploadEvents = (type) => {
+                const { box, input } = uploadConfig[type];
+                box.addEventListener('dragover',  (e) => { e.preventDefault(); box.classList.add('dragover'); });
+                box.addEventListener('dragleave', ()  => box.classList.remove('dragover'));
+                box.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    box.classList.remove('dragover');
+                    handleFile(e.dataTransfer.files[0], type);
+                });
+                input.addEventListener('change', (e) => handleFile(e.target.files[0], type));
+            };
+
+            setupUploadEvents('extrato');
+            setupUploadEvents('base');
+
+            function handleFile(file, type) {
+                if (file && file.name.endsWith('.csv')) {
+                    selectedFiles[type] = file;
+                } else if (file) {
+                    alert('Selecione um arquivo .csv');
+                    selectedFiles[type] = null;
+                }
+                updateFileInfo(type);
+                updateBtn();
+            }
+
+            function updateFileInfo(type) {
+                const { info } = uploadConfig[type];
+                info.innerHTML = selectedFiles[type]
+                    ? `<span>${selectedFiles[type].name}</span><button class="remove-btn" data-type="${type}">✖</button>`
+                    : '';
+            }
+
+            document.querySelector('.card').addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-btn')) {
+                    const type = e.target.dataset.type;
+                    selectedFiles[type] = null;
+                    uploadConfig[type].input.value = '';
+                    updateFileInfo(type);
+                    updateBtn();
+                }
+            });
+
+            function updateBtn() {
+                processBtn.disabled = !selectedFiles.extrato || !selectedFiles.base;
+            }
+
+            // ── Processamento ─────────────────────────────────────────────────
+            processBtn.addEventListener('click', async () => {
+                if (processBtn.disabled) return;
+                loading.style.display = 'block';
+                results.innerHTML = '';
+                processBtn.disabled = true;
+
+                try {
+                    const fd = new FormData();
+                    fd.append('extrato', selectedFiles.extrato);
+                    fd.append('base',    selectedFiles.base);
+
+                    const resp = await fetch('/conciliacao/processar', { method: 'POST', body: fd });
+
+                    if (resp.ok) {
+                        const blob = await resp.blob();
+                        const url  = URL.createObjectURL(blob);
+                        const a    = document.createElement('a');
+                        const cd   = resp.headers.get('Content-Disposition') || '';
+                        a.href = url;
+                        a.download = cd.match(/filename="?([^"]+)"?/)?.[1] || 'conciliacao.zip';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        results.innerHTML = `<div class="alert alert-success"><strong>Conciliação Gerada!</strong> O arquivo foi baixado com sucesso.</div>`;
+                    } else {
+                        const data = await resp.json().catch(() => ({ error: 'Erro desconhecido.' }));
+                        results.innerHTML = `<div class="alert alert-danger"><strong>Erro:</strong> ${data.error}</div>`;
+                    }
+                } catch (err) {
+                    results.innerHTML = `<div class="alert alert-danger"><strong>Erro de Conexão:</strong> ${err.message}</div>`;
+                } finally {
+                    loading.style.display = 'none';
+                    selectedFiles = { extrato: null, base: null };
+                    ['extrato', 'base'].forEach(t => {
+                        uploadConfig[t].input.value = '';
+                        updateFileInfo(t);
+                    });
+                    updateBtn();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

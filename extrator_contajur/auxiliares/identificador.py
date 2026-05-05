@@ -87,7 +87,7 @@ def identificar_banco(text):
         return "InfinitePay"
     
     # Sicoob (variações)
-    if ("https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text):
+    if "https://www.sicoob.com.br/sicoobnet/ib/#/home-extrato" in text or "SAC: 0800 724 4420" in text:
         return "Sicoob2"
     
     if 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB – SISBR' in text or 'PLATAFORMA DE SERVIÇOS FINANCEIROS DO SICOOB - SISBR' in text or 'COOP.: 4108-4 / SICOOB CREDIMEPI' in text:

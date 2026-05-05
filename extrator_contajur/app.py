@@ -40,6 +40,7 @@ def process_single_pdf_flask(file_content, filename, bank, text):
     Processa um único PDF e retorna o resultado
     """
     try:
+        print(f"[EXTRATOR] {filename} → {bank}")
         if not text or not bank:
             return {
                 'filename': filename,

@@ -1,51 +1,84 @@
 """
-Leitor de Notas de Locação → F100 EFD PIS/COFINS
-Identifica o modelo pelo CNPJ do emitente e gera linha no formato F100.
+Leitor de Notas de Locação → linha de importação
+Identifica o modelo pelo CNPJ do emitente e gera a linha no novo formato.
 """
 
 import re
+import os
 from datetime import datetime
 
+
+# ── Mapeamento CNPJ → código carregado do CSV base ───────────────────────────
+
+def _load_cnpj_codes() -> dict:
+    """Lê base_cnpj_limpa.csv e retorna {cnpj_digits: codigo_str}."""
+    base = os.path.join(os.path.dirname(__file__), '..', 'base_cnpj_limpa.csv')
+    base = os.path.normpath(base)
+    mapping = {}
+    if not os.path.exists(base):
+        return mapping
+    with open(base, encoding='utf-8-sig', errors='replace') as f:
+        for line in f:
+            parts = line.strip().split(';')
+            if len(parts) < 2:
+                continue
+            codigo, cnpj = parts[0].strip(), parts[1].strip()
+            digits = re.sub(r'\D', '', cnpj)
+            if digits and codigo and codigo.isdigit():
+                mapping[digits] = codigo
+    return mapping
+
+CNPJ_TO_CODE: dict = _load_cnpj_codes()
+
+
+# ── Modelos (emitentes conhecidos) ────────────────────────────────────────────
 
 MODELS = {
     "31889563000106": {
         "name": "LOGIN TRANSPORTES E LOCAÇÕES LTDA",
         "tipo_documento": 6,
-        "indicador_operacao": "2",
-        "produto": "Locação de Bens Móveis",
+        "indicador_operacao": "1",
         "cst_pis": "49",
         "parser": "login_transportes",
     },
     "44132928000103": {
         "name": "COPIADORA 2 DINHO LTDA",
         "tipo_documento": 6,
-        "indicador_operacao": "2",
+        "indicador_operacao": "1",
         "cst_pis": "49",
         "parser": "copiadora_dinho",
     },
     "45762015000125": {
         "name": "GLOBAL SOLUTIONS COM E SERV LTDA",
         "tipo_documento": 6,
-        "indicador_operacao": "2",
+        "indicador_operacao": "1",
         "cst_pis": "49",
         "parser": "global_solutions",
     },
     "22155582000118": {
         "name": "LESSA TRANSPORTE E LOCAÇÃO DE EQUIPAMENTOS",
         "tipo_documento": 6,
-        "indicador_operacao": "2",
+        "indicador_operacao": "1",
         "cst_pis": "49",
         "parser": "copiadora_dinho",
     },
     "11371839000152": {
         "name": "SEMD ENGENHARIA LTDA",
         "tipo_documento": 6,
-        "indicador_operacao": "2",
+        "indicador_operacao": "1",
         "cst_pis": "01",
         "parser": "global_solutions",
     },
 }
 
+
+ESTADOS_BR = {
+    'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG',
+    'PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO',
+}
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _clean_cnpj(text):
     return re.sub(r"\D", "", text)
@@ -54,7 +87,7 @@ def _clean_cnpj(text):
 def _parse_date_br(text):
     text = text.strip()
     try:
-        return datetime.strptime(text, "%d/%m/%Y").strftime("%d%m%Y")
+        return datetime.strptime(text, "%d/%m/%Y").strftime("%Y%m%d")
     except ValueError:
         return text
 
@@ -66,6 +99,8 @@ def _parse_value_br(text):
     text = text.replace(".", "").replace(",", ".")
     return float(text)
 
+
+# ── Identificação do emitente ─────────────────────────────────────────────────
 
 def _find_model_cnpj(content):
     for raw in re.findall(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", content):
@@ -85,9 +120,35 @@ def _find_model_cnpj(content):
     return None, None
 
 
+# ── Extração do destinatário ──────────────────────────────────────────────────
+
+def _extract_dest_cnpj(content, emitente_cnpj):
+    """Retorna o CNPJ do destinatário (dígitos) ou código do sistema."""
+    cnpjs = [_clean_cnpj(c) for c in re.findall(r"\d{2}\.?\d{3}\.?\d{3}/\d{4}-\d{2}", content)]
+    for c in cnpjs:
+        if c != emitente_cnpj:
+            return CNPJ_TO_CODE.get(c, c)
+    return ""
+
+
+def _extract_uf(content):
+    """Extrai a UF do destinatário (ex: 'RJ') procurando após CEP ou label UF."""
+    # Tenta pegar UF na linha do CEP: '28200-000 SÃO JOAO DA BARRA RJ ...'
+    m = re.search(r"\d{5}-?\d{3}\s+[\w\s]+\s+([A-Z]{2})\b", content)
+    if m and m.group(1) in ESTADOS_BR:
+        return m.group(1)
+    # Fallback: busca UF como label seguida de 2 letras
+    m = re.search(r"\bUF\b[^\n]*?([A-Z]{2})\b", content)
+    if m and m.group(1) in ESTADOS_BR:
+        return m.group(1)
+    return ""
+
+
+# ── Parsers específicos ───────────────────────────────────────────────────────
+
 def _parser_login_transportes(content):
     data = {}
-    m = re.search(r"NÚMERO\s+(\d+)", content)
+    m = re.search(r"N[ÚU]MERO\s+(\d+)", content, re.IGNORECASE)
     if m:
         data["numero_documento"] = int(m.group(1))
     m = re.search(r"DATA EMISS[ÃA]O\s+(\d{2}/\d{2}/\d{4})", content)
@@ -133,95 +194,73 @@ def _parser_global_solutions(content):
 
 PARSERS = {
     "login_transportes": _parser_login_transportes,
-    "copiadora_dinho": _parser_copiadora_dinho,
-    "global_solutions": _parser_global_solutions,
+    "copiadora_dinho":   _parser_copiadora_dinho,
+    "global_solutions":  _parser_global_solutions,
 }
 
 
-def _generate_f100_line(model, invoice_data, emitente_cnpj):
-    def q(v):
-        return f'"{v}"'
+# ── Geração da linha ──────────────────────────────────────────────────────────
 
+def _generate_line(model, invoice_data, dest_field, uf_dest):
+    cst   = model["cst_pis"]
     valor = invoice_data.get("valor_operacao", 0.0)
-    v = f"{valor:.2f}"
-    e = '""'
+    v     = f"{valor:.2f}"
+    q     = lambda s: f'"{s}"'
+    e     = '""'
+    b     = ''       # bare empty (sem aspas)
 
     fields = [
-        str(model["tipo_documento"]),                               # 01 tipo documento (I)
-        q(model["indicador_operacao"]),                             # 02 indicador operação (I)
-        q(emitente_cnpj),                                           # 03 CNPJ (A)
-        e,                                                          # 04 produto (A) - vazio
-        q(invoice_data.get("data_operacao", "")),                   # 05 data (A)
-        str(invoice_data.get("numero_documento", "")),              # 06 número documento (I)
-        q(invoice_data.get("condicao_pagamento", "P")),             # 07 condição pagamento (A)
-        v,                                                          # 08 valor operação (N)
-        e,                                                          # 09 conta débito (A) - vazio
-        e,                                                          # 10 conta crédito (A) - vazio
-        q(model["cst_pis"]),                                        # 11 CST PIS (A)
-        v,                                                          # 12 valor base PIS (N) = valor fatura
-        e,                                                          # 13 alíquota PIS (N) - vazio
-        e,                                                          # 14 valor PIS operação (N) - vazio
-        q(model["cst_pis"]),                                        # 15 CST Cofins (A) = mesmo CST
-        v,                                                          # 16 valor base Cofins (N) = valor fatura
-        e,                                                          # 17 alíquota Cofins (N) - vazio
-        e,                                                          # 18 valor Cofins operação (N) - vazio
-        e,                                                          # 19 natureza base cálculo (A) - vazio
-        e,                                                          # 20 indicador origem crédito (I) - vazio
-        e,                                                          # 21 descrição complementar (A) - vazio
-        e,                                                          # 22 centro de custo (A) - vazio
-        e,                                                          # 23 valor PIS retido (N) - vazio
-        e,                                                          # 24 cod. recolhimento PIS retido (I) - vazio
-        e,                                                          # 25 valor Cofins retido (N) - vazio
-        e,                                                          # 26 cod. recolhimento Cofins retido (I) - vazio
-        e,                                                          # 27 valor CSLL retido (N) - vazio
-        e,                                                          # 28 cod. recolhimento CSLL retido (I) - vazio
-        e,                                                          # 29 ind. natureza retenção (I) - vazio
-        e,                                                          # 30 inscrição estadual (A) - vazio
-        e,                                                          # 31 UF participante (A) - vazio
-        e,                                                          # 32 natureza receita (A) - vazio
-        e,                                                          # 33 tabela natureza receita (A) - vazio
-        e,                                                          # 34 atividade CPRB (A) - vazio
-        e,                                                          # 35 valor IR retido (N) - vazio
-        e,                                                          # 36 cod. recolhimento IR (I) - vazio
-        e,                                                          # 37 valor ISS retido (N) - vazio
-        e,                                                          # 38 cod. recolhimento ISS (I) - vazio
-        e,                                                          # 39 valor total bruto Factoring (N) - vazio
-        e,                                                          # 40 valor IOF Factoring (N) - vazio
-        e,                                                          # 41 valor tarifas Factoring (N) - vazio
-        e,                                                          # 42 valor líquido Factoring (N) - vazio
-        e,                                                          # 43 outras deduções INSS (N) - vazio
-        e,                                                          # 44 percentual redução base INSS (N) - vazio
-        e,                                                          # 45 valor materiais terceiros (N) - vazio
-        e,                                                          # 46 valor subempreitadas (N) - vazio
-        e,                                                          # 47 cod. recolhimento INSS (I) - vazio
-        e,                                                          # 48 tipo serviço (I) - vazio
-        e,                                                          # 49 valor base cálculo INSS retida (N) - vazio
-        e,                                                          # 50 valor materiais próprios (N) - vazio
-        e,                                                          # 51 código participante (A) - vazio
-        e,                                                          # 52 número contrato aluguel (A) - vazio
-        e,                                                          # 53 valor comissão (N) - vazio
+        str(model["tipo_documento"]),                       # f01: 6
+        q(model["indicador_operacao"]),                     # f02: "1"
+        q(dest_field),                                      # f03: CNPJ dest. ou código
+        e,                                                  # f04
+        q(invoice_data.get("data_operacao", "")),           # f05: data YYYYMMDD
+        str(invoice_data.get("numero_documento", "")),      # f06: número nota
+        q(invoice_data.get("condicao_pagamento", "P")),     # f07: "P"
+        v,                                                  # f08: valor
+        e,                                                  # f09
+        e,                                                  # f10
+        q(cst),                                             # f11: CST PIS  "49"
+        cst,                                                # f12: CST PIS   49
+        '0',                                                # f13
+        '0',                                                # f14
+        q(cst),                                             # f15: CST COFINS "49"
+        v,                                                  # f16: base COFINS
+        '0',                                                # f17
+        '0',                                                # f18
+        e,                                                  # f19
+        '1',                                                # f20
+        e,                                                  # f21
+        '" "',                                              # f22: espaço
+        b, b, b, b, b, b, b, b,                            # f23-f30: 8 vazios
+        e,                                                  # f31
+        q(uf_dest) if uf_dest else e,                       # f32: UF
+        e, e, e,                                            # f33-f35
+        b, b, b, b,                                         # f36-f39: 4 vazios
+        '0.00', '0.00', '0.00', '0.00',                    # f40-f43
+        b, b, b, b, b, b, b, b,                            # f44-f51: 8 vazios
+        e, e,                                               # f52-f53
+        b,                                                  # f54
+        e,                                                  # f55
+        b, b, b, b, b, b, b, b, b,                         # f56-f64: 9 vazios
+        b, b, b, b, b, b, b, b, b, b,                      # f65-f74: 10 vazios
+        e,                                                  # f75
+        b, b, b, b, b, b, b, b, b,                         # f76-f84: 9 vazios
     ]
     return ",".join(fields)
 
 
+# ── Entry point ───────────────────────────────────────────────────────────────
+
 def processar_nota(content: str) -> dict:
-    """
-    Recebe o texto extraído de uma nota de locação e retorna:
-    {
-        "success": bool,
-        "linha_f100": str,
-        "nome_emitente": str,
-        "error": str | None
-    }
-    """
     emitente_cnpj, model = _find_model_cnpj(content)
     if not model:
-        cnpjs_detectados = re.findall(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", content)
+        cnpjs = re.findall(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", content)
         return {
             "success": False,
             "linha_f100": None,
             "nome_emitente": None,
-            "error": f"CNPJ não reconhecido. CNPJs detectados: {cnpjs_detectados or 'nenhum'}",
+            "error": f"CNPJ não reconhecido. Detectados: {cnpjs or 'nenhum'}",
         }
 
     parser_fn = PARSERS.get(model["parser"])
@@ -234,7 +273,9 @@ def processar_nota(content: str) -> dict:
         }
 
     invoice_data = parser_fn(content)
-    linha = _generate_f100_line(model, invoice_data, emitente_cnpj)
+    dest_field   = _extract_dest_cnpj(content, emitente_cnpj)
+    uf_dest      = _extract_uf(content)
+    linha        = _generate_line(model, invoice_data, dest_field, uf_dest)
 
     return {
         "success": True,

@@ -123,11 +123,11 @@ def _find_model_cnpj(content):
 # ── Extração do destinatário ──────────────────────────────────────────────────
 
 def _extract_dest_cnpj(content, emitente_cnpj):
-    """Retorna o CNPJ do destinatário (dígitos) ou código do sistema."""
+    """Retorna o CNPJ do destinatário em dígitos."""
     cnpjs = [_clean_cnpj(c) for c in re.findall(r"\d{2}\.?\d{3}\.?\d{3}/\d{4}-\d{2}", content)]
     for c in cnpjs:
         if c != emitente_cnpj:
-            return CNPJ_TO_CODE.get(c, c)
+            return c
     return ""
 
 

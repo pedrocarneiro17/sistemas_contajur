@@ -102,20 +102,13 @@ def _parse_value_br(text):
 
 # ── Identificação do emitente ─────────────────────────────────────────────────
 
+_CNPJ_FLEX = r"\d{2}\.?\d{3}\.?\d{3}[/\-]\d{4}[/\-]\d{2}"
+
 def _find_model_cnpj(content):
-    for raw in re.findall(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", content):
+    for raw in re.findall(_CNPJ_FLEX, content):
         cleaned = _clean_cnpj(raw)
         if cleaned in MODELS:
             return cleaned, MODELS[cleaned]
-
-    for m in re.finditer(r"(\d{2}\.\d{3}\.\d{3}/\d{4}-)", content):
-        trecho = content[m.end():m.end() + 80]
-        d = re.search(r"(\d{2})", trecho)
-        if d:
-            raw = m.group(1) + d.group(1)
-            cleaned = _clean_cnpj(raw)
-            if cleaned in MODELS:
-                return cleaned, MODELS[cleaned]
 
     return None, None
 
@@ -123,8 +116,14 @@ def _find_model_cnpj(content):
 # ── Extração do destinatário ──────────────────────────────────────────────────
 
 def _extract_dest_cnpj(content, emitente_cnpj):
-    """Retorna o CNPJ do destinatário em dígitos."""
-    cnpjs = [_clean_cnpj(c) for c in re.findall(r"\d{2}\.?\d{3}\.?\d{3}/\d{4}-\d{2}", content)]
+    """
+    Retorna o CNPJ do destinatário em dígitos.
+    Aceita tanto XX.XXX.XXX/XXXX-XX quanto formatos com separadores invertidos
+    (ex: 48.714.860-0001/13).
+    """
+    # Padrão flexível: aceita / e - em qualquer ordem entre os grupos
+    pattern = r"\d{2}\.?\d{3}\.?\d{3}[/\-]\d{4}[/\-]\d{2}"
+    cnpjs = [_clean_cnpj(c) for c in re.findall(pattern, content)]
     for c in cnpjs:
         if c != emitente_cnpj:
             return c

@@ -11,10 +11,21 @@ notas_locacao_bp = Blueprint('notas_locacao', __name__, url_prefix='/notas-locac
 CORS(notas_locacao_bp)
 
 _CNPJ_RE = re.compile(r'\d{2}\.?\d{3}\.?\d{3}[/\-]\d{4}[/\-]\d{2}')
+_CPF_RE  = re.compile(r'\d{3}\.?\d{3}\.?\d{3}[/\-]?\d{2}')
 
 
-def _has_two_cnpjs(text: str) -> bool:
-    return len(_CNPJ_RE.findall(text)) >= 2
+def _has_two_docs(text: str) -> bool:
+    """Retorna True se há pelo menos 2 documentos fiscais (2 CNPJs, ou 1 CNPJ + 1 CPF)."""
+    cnpjs = _CNPJ_RE.findall(text)
+    if len(cnpjs) >= 2:
+        return True
+    if len(cnpjs) >= 1:
+        # Remove os CNPJs do texto antes de buscar CPF para evitar falsos positivos
+        text_sem_cnpj = _CNPJ_RE.sub('', text)
+        cpfs = _CPF_RE.findall(text_sem_cnpj)
+        if len(cpfs) >= 1:
+            return True
+    return False
 
 
 def _ocr_pdf(file_bytes: bytes) -> str:
@@ -51,7 +62,7 @@ def _extract_text_from_pdf(file_bytes: bytes) -> str:
     cnpjs = _CNPJ_RE.findall(text)
     print(f"[NOTAS] pdfplumber → {len(text)} chars | CNPJs encontrados: {cnpjs}")
 
-    if _has_two_cnpjs(text):
+    if _has_two_docs(text):
         print("[NOTAS] dois CNPJs encontrados via pdfplumber — sem OCR")
         return text
 

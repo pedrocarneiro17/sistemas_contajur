@@ -122,18 +122,25 @@ def _find_model_cnpj(content):
 
 # ── Extração do destinatário ──────────────────────────────────────────────────
 
+_CPF_FLEX = r"\d{3}\.?\d{3}\.?\d{3}[/\-]?\d{2}"
+
 def _extract_dest_cnpj(content, emitente_cnpj):
     """
-    Retorna o CNPJ do destinatário em dígitos.
-    Aceita tanto XX.XXX.XXX/XXXX-XX quanto formatos com separadores invertidos
-    (ex: 48.714.860-0001/13).
+    Retorna o documento fiscal do destinatário em dígitos (CNPJ ou CPF).
+    Tenta primeiro achar um segundo CNPJ; se não achar, busca CPF.
     """
-    # Padrão flexível: aceita / e - em qualquer ordem entre os grupos
-    pattern = r"\d{2}\.?\d{3}\.?\d{3}[/\-]\d{4}[/\-]\d{2}"
-    cnpjs = [_clean_cnpj(c) for c in re.findall(pattern, content)]
+    cnpj_pattern = r"\d{2}\.?\d{3}\.?\d{3}[/\-]\d{4}[/\-]\d{2}"
+    cnpjs = [_clean_cnpj(c) for c in re.findall(cnpj_pattern, content)]
     for c in cnpjs:
         if c != emitente_cnpj:
             return c
+
+    # Fallback: busca CPF (11 dígitos) removendo CNPJs para evitar falso positivo
+    content_sem_cnpj = re.sub(cnpj_pattern, '', content)
+    cpfs = re.findall(_CPF_FLEX, content_sem_cnpj)
+    if cpfs:
+        return _clean_cnpj(cpfs[0])
+
     return ""
 
 

@@ -54,19 +54,13 @@ def index():
 def upload():
     """
     Form-data:
-        file:   PDF do extrato bancário
-        nome[]: lista de nomes para busca
-        cpf[]:  lista de CPFs/6 dígitos para busca (mesma ordem dos nomes)
+        files[]: um ou mais PDFs de extrato bancário
+        nome[]:  lista de nomes para busca
+        cpf[]:   lista de CPFs/6 dígitos para busca (mesma ordem dos nomes)
     """
-    if "file" not in request.files:
-        return jsonify({"success": False, "error": "Nenhum arquivo enviado (campo: file)"}), 400
-
-    file = request.files["file"]
-    if not file or file.filename == "":
-        return jsonify({"success": False, "error": "Nenhum arquivo selecionado"}), 400
-
-    if not file.filename.lower().endswith(".pdf"):
-        return jsonify({"success": False, "error": "Envie um arquivo PDF"}), 400
+    files = request.files.getlist("files[]")
+    if not files or all(f.filename == "" for f in files):
+        return jsonify({"success": False, "error": "Nenhum arquivo enviado (campo: files[])"}), 400
 
     nomes = request.form.getlist("nome[]")
     cpfs  = request.form.getlist("cpf[]")
@@ -78,16 +72,37 @@ def upload():
     buscas = [{"nome": n, "cpf": c} for n, c in zip(nomes, cpfs) if n.strip() or c.strip()]
 
     try:
-        csv_bytes, _ = _pdf_to_csv_bytes(file)
-        excel = processar(csv_bytes, buscas)
-        nome_arquivo = file.filename.rsplit(".", 1)[0] + "_debitos.xlsx"
+        csv_parts = []
+        erros = []
+        for file in files:
+            if not file or file.filename == "":
+                continue
+            if not file.filename.lower().endswith(".pdf"):
+                erros.append(f"{file.filename}: não é PDF")
+                continue
+            try:
+                csv_bytes, _ = _pdf_to_csv_bytes(file)
+                csv_parts.append(csv_bytes)
+            except ValueError as e:
+                erros.append(f"{file.filename}: {e}")
+
+        if not csv_parts:
+            msg = "; ".join(erros) if erros else "Nenhum arquivo processado com sucesso"
+            return jsonify({"success": False, "error": msg}), 422
+
+        # Concatena todos os CSVs (um após o outro, sem cabeçalho)
+        combined_csv = b"\n".join(p.rstrip(b"\n") for p in csv_parts)
+
+        excel = processar(combined_csv, buscas)
+
+        nome_arquivo = "debitos.xlsx" if len(csv_parts) > 1 else (
+            files[0].filename.rsplit(".", 1)[0] + "_debitos.xlsx"
+        )
         return send_file(
             excel,
             as_attachment=True,
             download_name=nome_arquivo,
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-    except ValueError as e:
-        return jsonify({"success": False, "error": str(e)}), 422
     except Exception as e:
         return jsonify({"success": False, "error": f"Erro interno: {e}"}), 500

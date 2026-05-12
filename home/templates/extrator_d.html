@@ -25,13 +25,13 @@
             <p class="text-body-secondary">Filtra transações tipo D e destaca em azul as que contêm o nome ou CPF informado.</p>
         </div>
 
-        <!-- Upload CSV -->
+        <!-- Upload PDFs -->
         <div class="upload-area text-center p-4 rounded" id="uploadArea">
-            <p class="mb-2">📁 Arraste o PDF do extrato aqui ou</p>
-            <button class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">Selecionar PDF</button>
-            <input type="file" id="fileInput" class="d-none" accept=".pdf">
+            <p class="mb-2">📁 Arraste os PDFs dos extratos aqui ou</p>
+            <button class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">Selecionar PDFs</button>
+            <input type="file" id="fileInput" class="d-none" accept=".pdf" multiple>
         </div>
-        <div id="fileInfo" class="mt-2 text-body-secondary small"></div>
+        <div id="fileList" class="mt-2"></div>
 
         <!-- Buscas -->
         <div class="mt-4">
@@ -73,7 +73,7 @@
     </script>
 
     <script>
-        let selectedFile = null;
+        let selectedFiles = [];
 
         // ── Arquivo ───────────────────────────────────────────────────────────
         const uploadArea = document.getElementById('uploadArea');
@@ -83,15 +83,30 @@
         uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault(); uploadArea.classList.remove('dragover');
-            const f = e.dataTransfer.files[0];
-            if (f) setFile(f);
+            addFiles(Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf')));
         });
-        fileInput.addEventListener('change', (e) => { if (e.target.files[0]) setFile(e.target.files[0]); });
+        fileInput.addEventListener('change', (e) => { addFiles(Array.from(e.target.files)); fileInput.value = null; });
 
-        function setFile(f) {
-            selectedFile = f;
-            document.getElementById('fileInfo').textContent = `📄 ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`;
+        function addFiles(files) {
+            files.forEach(f => { if (!selectedFiles.find(s => s.name === f.name)) selectedFiles.push(f); });
+            renderFileList();
             updateBtn();
+        }
+
+        function removeFile(idx) {
+            selectedFiles.splice(idx, 1);
+            renderFileList();
+            updateBtn();
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('fileList');
+            if (!selectedFiles.length) { list.innerHTML = ''; return; }
+            list.innerHTML = selectedFiles.map((f, i) => `
+                <div class="file-item d-flex justify-content-between align-items-center">
+                    <span class="text-body-secondary small">📄 ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)</span>
+                    <button class="remove-btn btn btn-sm btn-outline-danger" onclick="removeFile(${i})">Remover</button>
+                </div>`).join('');
         }
 
         // ── Buscas ────────────────────────────────────────────────────────────
@@ -127,12 +142,12 @@
         }
 
         function updateBtn() {
-            document.getElementById('processBtn').disabled = !selectedFile;
+            document.getElementById('processBtn').disabled = selectedFiles.length === 0;
         }
 
         // ── Processamento ─────────────────────────────────────────────────────
         async function processFiles() {
-            if (!selectedFile) return;
+            if (!selectedFiles.length) return;
 
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').innerHTML = '';
@@ -140,7 +155,7 @@
 
             try {
                 const formData = new FormData();
-                formData.append('file', selectedFile);
+                selectedFiles.forEach(f => formData.append('files[]', f));
 
                 const { nomes, cpfs } = getBuscas();
                 nomes.forEach(n => formData.append('nome[]', n));

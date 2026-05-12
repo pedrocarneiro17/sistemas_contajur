@@ -48,6 +48,13 @@ MODELS = {
         "cst_pis": "49",
         "parser": "copiadora_dinho",
     },
+    "02904254000160": {
+        "name": "LIBERINO LOPES VALENTE JUNIOR",
+        "tipo_documento": 6,
+        "indicador_operacao": "1",
+        "cst_pis": "49",
+        "parser": "copiadora_dinho",
+    },
     "45762015000125": {
         "name": "GLOBAL SOLUTIONS COM E SERV LTDA",
         "tipo_documento": 6,

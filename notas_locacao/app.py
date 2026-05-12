@@ -1,6 +1,5 @@
 import io
 import re
-import zipfile
 import concurrent.futures
 import pdfplumber
 from flask import Blueprint, request, jsonify, send_file, render_template
@@ -165,16 +164,14 @@ def upload():
             'results': sanitized,
         }), 422
 
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for r in successful:
-            txt_name = f"{r['filename'].rsplit('.', 1)[0]}.txt"
-            zf.writestr(txt_name, r['linha_f100'] + '\n')
-    zip_buffer.seek(0)
+    txt_buffer = io.BytesIO(
+        '\n'.join(r['linha_f100'] for r in successful).encode('utf-8')
+    )
+    txt_buffer.seek(0)
 
     return send_file(
-        zip_buffer,
+        txt_buffer,
         as_attachment=True,
-        download_name='notas.zip',
-        mimetype='application/zip',
+        download_name='notas.txt',
+        mimetype='text/plain',
     )

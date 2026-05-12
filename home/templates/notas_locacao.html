@@ -125,16 +125,17 @@
 
                 loading.style.display = 'none';
 
-                if (response.ok && response.headers.get('Content-Type')?.includes('zip')) {
+                const contentType = response.headers.get('Content-Type') || '';
+                if (response.ok && contentType.includes('text/plain')) {
                     const blob = await response.blob();
                     const url  = URL.createObjectURL(blob);
                     const a    = document.createElement('a');
-                    a.href = url; a.download = 'notas.zip'; a.click();
+                    a.href = url; a.download = 'notas.txt'; a.click();
                     URL.revokeObjectURL(url);
 
                     results.innerHTML = `
                         <div class="alert alert-success mt-3">
-                            ✅ Processamento concluído! O download do ZIP iniciou automaticamente.
+                            ✅ Processamento concluído! O download do TXT iniciou automaticamente.
                         </div>`;
                 } else {
                     const data = await response.json();

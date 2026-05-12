@@ -138,16 +138,15 @@ def upload():
     valid = [p for p in file_payloads if p['bytes'] is not None]
     if valid:
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = {
-                executor.submit(_process_single, p['filename'], p['bytes']): p
+            futures = [
+                executor.submit(_process_single, p['filename'], p['bytes'])
                 for p in valid
-            }
-            for future in concurrent.futures.as_completed(futures):
+            ]
+            for future, p in zip(futures, valid):
                 try:
                     results.append(future.result())
                 except Exception as e:
-                    info = futures[future]
-                    results.append({'filename': info['filename'], 'success': False, 'error': str(e)})
+                    results.append({'filename': p['filename'], 'success': False, 'error': str(e)})
 
     for p in file_payloads:
         if p['error']:

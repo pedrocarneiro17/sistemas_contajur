@@ -10,3 +10,5 @@ openpyxl
 xlrd
 pdfminer.six
 requests
+pytesseract
+pdf2image

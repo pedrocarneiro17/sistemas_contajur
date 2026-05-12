@@ -1,4 +1,5 @@
 import io
+import re
 import zipfile
 import concurrent.futures
 import pdfplumber
@@ -10,26 +11,77 @@ from .processador import processar_nota
 notas_locacao_bp = Blueprint('notas_locacao', __name__, url_prefix='/notas-locacao')
 CORS(notas_locacao_bp)
 
+_CNPJ_RE = re.compile(r'\d{2}\.?\d{3}\.?\d{3}[/\-]\d{4}[/\-]\d{2}')
 
-def _extract_text_from_pdf(file) -> str:
+
+def _has_two_cnpjs(text: str) -> bool:
+    return len(_CNPJ_RE.findall(text)) >= 2
+
+
+def _ocr_pdf(file_bytes: bytes) -> str:
+    """Fallback OCR via pytesseract (PDFs escaneados)."""
+    try:
+        from pdf2image import convert_from_bytes
+        import pytesseract
+        images = convert_from_bytes(file_bytes, dpi=300)
+        print(f"[NOTAS] OCR: {len(images)} página(s) convertida(s)")
+        return "\n".join(
+            pytesseract.image_to_string(img, lang='por') for img in images
+        )
+    except Exception as e:
+        msg = str(e)
+        if 'tesseract is not installed' in msg or 'not in your PATH' in msg:
+            print("[NOTAS] OCR indisponível localmente (tesseract não instalado) — usando texto do pdfplumber")
+        else:
+            print(f"[NOTAS] OCR erro: {e}")
+        return ""
+
+
+def _extract_text_from_pdf(file_bytes: bytes) -> str:
+    # 1ª tentativa: pdfplumber
     text = ""
-    with pdfplumber.open(file) as pdf:
-        for page in pdf.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
-    return text
+    try:
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            for page in pdf.pages:
+                t = page.extract_text()
+                if t:
+                    text += t + "\n"
+    except Exception as e:
+        print(f"[NOTAS] pdfplumber erro: {e}")
+
+    cnpjs = _CNPJ_RE.findall(text)
+    print(f"[NOTAS] pdfplumber → {len(text)} chars | CNPJs encontrados: {cnpjs}")
+
+    if _has_two_cnpjs(text):
+        print("[NOTAS] texto suficiente via pdfplumber")
+        return text
+
+    print("[NOTAS] menos de 2 CNPJs — iniciando OCR...")
+    ocr_text = _ocr_pdf(file_bytes)
+    ocr_cnpjs = _CNPJ_RE.findall(ocr_text)
+    print(f"[NOTAS] OCR → {len(ocr_text)} chars | CNPJs encontrados: {ocr_cnpjs}")
+
+    result = ocr_text if ocr_text.strip() else text
+    print(f"[NOTAS] usando {'OCR' if ocr_text.strip() else 'pdfplumber (fallback)'}")
+    return result
 
 
 def _process_single(filename: str, file_bytes: bytes) -> dict:
+    print(f"\n[NOTAS] ── processando: {filename} ──")
     try:
-        text = _extract_text_from_pdf(io.BytesIO(file_bytes))
+        text = _extract_text_from_pdf(file_bytes)
         if not text.strip():
+            print(f"[NOTAS] {filename} → nenhum texto extraído")
             return {"filename": filename, "success": False, "error": "Nenhum texto extraído do PDF"}
         result = processar_nota(text)
         result["filename"] = filename
+        if result["success"]:
+            print(f"[NOTAS] {filename} → ✅ {result['nome_emitente']}")
+        else:
+            print(f"[NOTAS] {filename} → ❌ {result['error']}")
         return result
     except Exception as e:
+        print(f"[NOTAS] {filename} → exceção: {e}")
         return {"filename": filename, "success": False, "linha_f100": None, "nome_emitente": None, "error": str(e)}
 
 

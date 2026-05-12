@@ -37,7 +37,7 @@ def _ocr_pdf(file_bytes: bytes) -> str:
 
 
 def _extract_text_from_pdf(file_bytes: bytes) -> str:
-    # 1ª tentativa: pdfplumber
+    # Sempre usa pdfplumber como base principal
     text = ""
     try:
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
@@ -52,17 +52,25 @@ def _extract_text_from_pdf(file_bytes: bytes) -> str:
     print(f"[NOTAS] pdfplumber → {len(text)} chars | CNPJs encontrados: {cnpjs}")
 
     if _has_two_cnpjs(text):
-        print("[NOTAS] texto suficiente via pdfplumber")
+        print("[NOTAS] dois CNPJs encontrados via pdfplumber — sem OCR")
         return text
 
-    print("[NOTAS] menos de 2 CNPJs — iniciando OCR...")
+    # Falta o 2º CNPJ: roda OCR só para complementar o CNPJ do destinatário
+    print("[NOTAS] menos de 2 CNPJs — rodando OCR apenas para buscar CNPJ do destinatário...")
     ocr_text = _ocr_pdf(file_bytes)
     ocr_cnpjs = _CNPJ_RE.findall(ocr_text)
     print(f"[NOTAS] OCR → {len(ocr_text)} chars | CNPJs encontrados: {ocr_cnpjs}")
 
-    result = ocr_text if ocr_text.strip() else text
-    print(f"[NOTAS] usando {'OCR' if ocr_text.strip() else 'pdfplumber (fallback)'}")
-    return result
+    # Injeta no texto do pdfplumber os CNPJs extras encontrados pelo OCR
+    existing = set(_CNPJ_RE.findall(text))
+    new_cnpjs = [c for c in ocr_cnpjs if c not in existing]
+    if new_cnpjs:
+        extra = "\n".join(new_cnpjs)
+        print(f"[NOTAS] CNPJs adicionados via OCR: {new_cnpjs}")
+        return text + "\n" + extra
+    else:
+        print("[NOTAS] OCR não trouxe CNPJs novos — usando pdfplumber mesmo assim")
+        return text
 
 
 def _process_single(filename: str, file_bytes: bytes) -> dict:

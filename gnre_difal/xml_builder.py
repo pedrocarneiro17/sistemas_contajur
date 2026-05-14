@@ -140,9 +140,18 @@ def _bloco_item(pai, g: DifAlGuia) -> None:
     _bloco_destinatario(item, g)
 
     # Campos extras (máx 3)
-    if g.campos_extras:
+    # Injeta automaticamente o campo extra 99 (Chave de Acesso NF-e/CT-e)
+    # quando documento_origem for uma chave de 44 dígitos e o código 99
+    # ainda não estiver nos campos_extras informados manualmente.
+    campos_extras_efetivos = list(g.campos_extras or [])
+    chave = "".join(c for c in (g.documento_origem or "") if c.isdigit())
+    codigos_ja_presentes = {str(c) for c, _ in campos_extras_efetivos}
+    if len(chave) == 44 and "99" not in codigos_ja_presentes:
+        campos_extras_efetivos.insert(0, ("99", chave))
+
+    if campos_extras_efetivos:
         extras = _sub(item, "camposExtras")
-        for cod, val in g.campos_extras[:3]:
+        for cod, val in campos_extras_efetivos[:3]:
             ce = _sub(extras, "campoExtra")
             _sub(ce, "codigo", str(cod))
             _sub(ce, "valor", str(val))

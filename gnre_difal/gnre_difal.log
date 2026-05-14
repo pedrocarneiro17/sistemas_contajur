@@ -1,0 +1,27 @@
+2026-05-14 09:36:20,386 [INFO] ============================================================
+2026-05-14 09:36:20,386 [INFO] Iniciando processamento GNRE/DIFAL
+2026-05-14 09:36:20,386 [INFO] Arquivo: dados_difal.xlsx | Dry-run: True
+2026-05-14 09:36:20,386 [INFO] ============================================================
+2026-05-14 09:36:21,021 [INFO] Leitura concluída: 27 guias válidas, 0 erros
+2026-05-14 09:36:21,022 [INFO] Total de guias a processar: 27
+2026-05-14 09:36:21,022 [INFO] Lotes gerados: 1
+2026-05-14 09:36:21,028 [INFO] XML lote 1 salvo: saida\xmls\lote_001.xml
+2026-05-14 09:36:21,028 [INFO] Modo dry-run: XMLs gerados em 'saida\xmls'. Envio cancelado.
+2026-05-14 15:03:57,659 [INFO] ============================================================
+2026-05-14 15:03:57,660 [INFO] Iniciando processamento GNRE/DIFAL
+2026-05-14 15:03:57,660 [INFO] Arquivo: dados_difal.xlsx | Dry-run: True
+2026-05-14 15:03:57,660 [INFO] ============================================================
+2026-05-14 15:03:57,996 [INFO] Leitura: 27 guias válidas, 0 erros
+2026-05-14 15:03:57,997 [INFO] Total de guias a processar: 27
+2026-05-14 15:03:57,997 [INFO] Lotes gerados: 1
+2026-05-14 15:03:58,000 [INFO] XML lote 1 salvo: saida\xmls\lote_001.xml
+2026-05-14 15:03:58,000 [INFO] Modo dry-run: XMLs gerados em 'saida\xmls'. Envio cancelado.
+2026-05-14 16:44:44,362 [INFO] ============================================================
+2026-05-14 16:44:44,363 [INFO] Iniciando processamento GNRE/DIFAL
+2026-05-14 16:44:44,363 [INFO] Arquivo: dados_difal.xlsx | Dry-run: True
+2026-05-14 16:44:44,363 [INFO] ============================================================
+2026-05-14 16:44:44,801 [INFO] Leitura: 27 guias válidas, 0 erros
+2026-05-14 16:44:44,801 [INFO] Total de guias a processar: 27
+2026-05-14 16:44:44,801 [INFO] Lotes gerados: 1
+2026-05-14 16:44:44,805 [INFO] XML lote 1 salvo: saida\xmls\lote_001.xml
+2026-05-14 16:44:44,805 [INFO] Modo dry-run: XMLs gerados em 'saida\xmls'. Envio cancelado.

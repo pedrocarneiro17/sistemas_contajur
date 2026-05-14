@@ -12,3 +12,8 @@ pdfminer.six
 requests
 pytesseract
 pdf2image
+lxml
+cryptography
+requests-pkcs12
+pyOpenSSL
+python-dotenv

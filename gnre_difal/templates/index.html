@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GNRE / DIFAL — Geração em Lote</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 64px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0d47a1;
+      letter-spacing: -0.5px;
+    }
+    header p {
+      color: #555;
+      margin-top: 4px;
+      font-size: 0.93rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 760px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0d47a1;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e8ecf0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 5px;
+    }
+    label span.opt {
+      font-weight: 400;
+      color: #888;
+      font-size: 0.78rem;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="file"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #d0d7de;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      transition: border-color 0.15s;
+      background: #fafbfc;
+    }
+    input:focus { outline: none; border-color: #1976d2; background: #fff; }
+    input[type="file"] { cursor: pointer; padding: 7px 10px; }
+
+    .upload-area {
+      border: 2px dashed #b0bec5;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .upload-area:hover, .upload-area.over {
+      border-color: #1976d2;
+      background: #e8f0fe;
+    }
+    .upload-area input[type="file"] {
+      display: none;
+    }
+    .upload-area .filename {
+      font-size: 0.83rem;
+      color: #1976d2;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+    .upload-icon { font-size: 1.6rem; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .toggle {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #ccc;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      height: 18px; width: 18px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .slider { background: #1976d2; }
+    .toggle input:checked + .slider::before { transform: translateX(18px); }
+    .toggle-label { font-size: 0.88rem; color: #444; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 28px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: #1976d2; color: white; }
+    .btn-primary:hover { background: #1565c0; }
+    .btn-primary:disabled { background: #90a4ae; cursor: not-allowed; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-success:hover { background: #1b5e20; }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #1976d2;
+      color: #1976d2;
+    }
+    .btn-outline:hover { background: #e8f0fe; }
+
+    /* Painel de progresso */
+    #painel-progresso { display: none; }
+
+    .progress-bar-outer {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      background: #1976d2;
+      border-radius: 8px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-iniciando, .badge-lendo_dados { background: #fff3e0; color: #e65100; }
+    .badge-enviando { background: #e3f2fd; color: #0d47a1; }
+    .badge-concluido { background: #e8f5e9; color: #1b5e20; }
+    .badge-erro { background: #ffebee; color: #b71c1c; }
+
+    .log-box {
+      background: #1a1a2e;
+      color: #a5d6a7;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      max-height: 260px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+    .log-box .log-erro { color: #ef9a9a; }
+    .log-box .log-aviso { color: #fff59d; }
+
+    .downloads {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 10px 0 4px;
+    }
+    .stat {
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .stat strong { color: #0d47a1; font-size: 1rem; }
+
+    .info-box {
+      background: #e8f0fe;
+      border-left: 4px solid #1976d2;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 0.83rem;
+      color: #1a237e;
+      margin-bottom: 16px;
+    }
+
+    .field-group { margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <a href="/" style="font-size:0.85rem; color:#1976d2; text-decoration:none; font-weight:600;">← Voltar</a>
+  </div>
+  <h1>&#x1F4CB; GNRE / DIFAL — Geração em Lote</h1>
+  <p>Envie sua planilha e certificado digital para gerar e transmitir as guias GNRE de DIFAL.</p>
+</header>
+
+<!-- Formulário principal -->
+<form id="form-gnre" autocomplete="off">
+  <div class="card">
+    <h2>&#x1F3E2; Dados da empresa</h2>
+    <div class="grid-2">
+      <div class="field-group">
+        <label>CNPJ do emitente</label>
+        <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" maxlength="18" required />
+      </div>
+      <div class="field-group">
+        <label>IE do emitente <span class="opt">(deixe vazio se ISENTO)</span></label>
+        <input type="text" id="ie" name="ie" placeholder="Inscrição Estadual" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>&#x1F511; Certificado digital eCNPJ</h2>
+    <div class="info-box">
+      O certificado fica apenas em memória durante o processamento e não é gravado permanentemente.
+    </div>
+    <div class="grid-2">
+      <div class="field-group">
+        <label>Arquivo .pfx / .p12</label>
+        <div class="upload-area" id="area-cert" onclick="document.getElementById('cert-input').click()">
+          <div class="upload-icon">&#x1F4CE;</div>
+          <div style="font-size:0.85rem; color:#666; margin-top:4px;">Clique para selecionar</div>
+          <div class="filename" id="cert-nome"></div>
+          <input type="file" id="cert-input" accept=".pfx,.p12" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Senha do certificado</label>
+        <input type="password" id="senha_cert" name="senha_cert" placeholder="Senha" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>&#x1F4C2; Planilha de dados DIFAL</h2>
+    <div class="info-box">
+      Colunas obrigatórias: <strong>uf, cnpj_emitente, periodo_referencia, valor_principal</strong>.
+      <a href="/gnre-difal/baixar_modelo" style="color:#1976d2; font-weight:600;">Baixar planilha modelo &#x2193;</a>
+    </div>
+    <div class="upload-area" id="area-planilha" onclick="document.getElementById('planilha-input').click()">
+      <div class="upload-icon">&#x1F4CA;</div>
+      <div style="font-size:0.85rem; color:#666; margin-top:4px;">Clique para selecionar (.xlsx ou .csv)</div>
+      <div class="filename" id="planilha-nome"></div>
+      <input type="file" id="planilha-input" accept=".xlsx,.xls,.csv" />
+    </div>
+  </div>
+
+  <div class="card" style="padding-bottom:24px;">
+    <h2>&#x2699;&#xFE0F; Opções</h2>
+    <div class="toggle-row">
+      <label class="toggle">
+        <input type="checkbox" id="dry_run" />
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">
+        <strong>Modo simulação (dry-run)</strong> — gera os XMLs sem enviar ao portal
+      </span>
+    </div>
+
+    <div style="margin-top:22px; display:flex; gap:12px; flex-wrap:wrap;">
+      <button type="submit" class="btn btn-primary" id="btn-enviar">
+        &#x25B6; Processar guias
+      </button>
+      <button type="button" class="btn btn-outline" onclick="resetForm()">
+        &#x21BA; Limpar
+      </button>
+    </div>
+  </div>
+</form>
+
+<!-- Painel de progresso -->
+<div class="card" id="painel-progresso">
+  <h2>&#x1F4E1; Processamento</h2>
+
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+    <span id="badge-status" class="status-badge">—</span>
+    <span id="txt-status" style="font-size:0.88rem; color:#555;"></span>
+  </div>
+
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="barra"></div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat">Guias: <strong id="stat-guias">—</strong></div>
+    <div class="stat">Lotes: <strong id="stat-lotes">—</strong></div>
+    <div class="stat">Enviados: <strong id="stat-enviados">—</strong></div>
+  </div>
+
+  <div class="log-box" id="log-box"></div>
+
+  <!-- Protocolos recebidos -->
+  <div id="bloco-protocolos" style="display:none; margin-top:16px;">
+    <div style="font-size:0.82rem; font-weight:600; color:#444; margin-bottom:6px;">
+      &#x1F4DD; Protocolos de recepção
+    </div>
+    <div id="lista-protocolos"
+         style="font-family:monospace; font-size:0.85rem; background:#f5f5f5;
+                border-radius:6px; padding:10px 14px; border:1px solid #ddd; line-height:1.8;">
+    </div>
+    <div style="font-size:0.75rem; color:#888; margin-top:4px;">
+      Guarde estes números — use-os para consultar o status no portal GNRE caso necessário.
+    </div>
+  </div>
+
+  <div class="downloads" id="downloads" style="display:none;"></div>
+</div>
+
+<script>
+  let jobId = null;
+  let polling = null;
+
+  // Upload visual
+  setupUpload("cert-input", "cert-nome", "area-cert");
+  setupUpload("planilha-input", "planilha-nome", "area-planilha");
+
+  function setupUpload(inputId, nomeId, areaId) {
+    const input = document.getElementById(inputId);
+    const nome = document.getElementById(nomeId);
+    const area = document.getElementById(areaId);
+
+    input.addEventListener("change", () => {
+      nome.textContent = input.files[0] ? input.files[0].name : "";
+    });
+    area.addEventListener("dragover", e => { e.preventDefault(); area.classList.add("over"); });
+    area.addEventListener("dragleave", () => area.classList.remove("over"));
+    area.addEventListener("drop", e => {
+      e.preventDefault();
+      area.classList.remove("over");
+      if (e.dataTransfer.files[0]) {
+        input.files = e.dataTransfer.files;
+        nome.textContent = e.dataTransfer.files[0].name;
+      }
+    });
+  }
+
+  // Formata CNPJ automaticamente
+  document.getElementById("cnpj").addEventListener("input", function () {
+    let v = this.value.replace(/\D/g, "").slice(0, 14);
+    if (v.length > 12) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, "$1.$2.$3/$4-$5");
+    else if (v.length > 8) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{0,4})/, "$1.$2.$3/$4");
+    else if (v.length > 5) v = v.replace(/^(\d{2})(\d{3})(\d{0,3})/, "$1.$2.$3");
+    else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,3})/, "$1.$2");
+    this.value = v;
+  });
+
+  document.getElementById("form-gnre").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const certFile = document.getElementById("cert-input").files[0];
+    const planilhaFile = document.getElementById("planilha-input").files[0];
+    const cnpj = document.getElementById("cnpj").value;
+
+    if (!certFile) { alert("Selecione o certificado digital."); return; }
+    if (!planilhaFile) { alert("Selecione a planilha de dados."); return; }
+    if (!cnpj.replace(/\D/g, "")) { alert("Informe o CNPJ."); return; }
+
+    const btn = document.getElementById("btn-enviar");
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+
+    const fd = new FormData();
+    fd.append("certificado", certFile);
+    fd.append("planilha", planilhaFile);
+    fd.append("cnpj", cnpj.replace(/\D/g, ""));
+    fd.append("ie", document.getElementById("ie").value);
+    fd.append("senha_cert", document.getElementById("senha_cert").value);
+    fd.append("dry_run", document.getElementById("dry_run").checked ? "true" : "false");
+
+    try {
+      const resp = await fetch("/gnre-difal/processar", { method: "POST", body: fd });
+      const data = await resp.json();
+      if (data.erro) {
+        mostrarErroUpload(data.erro);
+        btn.disabled = false;
+        btn.textContent = "▶ Processar guias";
+        return;
+      }
+
+      jobId = data.job_id;
+      mostrarPainel();
+      polling = setInterval(consultarStatus, 2000);
+
+    } catch (err) {
+      alert("Erro de comunicação: " + err);
+      btn.disabled = false;
+      btn.textContent = "▶ Processar guias";
+    }
+  });
+
+  function mostrarPainel() {
+    const painel = document.getElementById("painel-progresso");
+    painel.style.display = "block";
+    painel.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("log-box").textContent = "";
+    document.getElementById("downloads").style.display = "none";
+    document.getElementById("downloads").innerHTML = "";
+  }
+
+  async function consultarStatus() {
+    if (!jobId) return;
+    const resp = await fetch("/gnre-difal/status/" + jobId);
+    const job = await resp.json();
+
+    atualizarBadge(job.status);
+    atualizarLog(job.log || []);
+    atualizarProtocolos(job.protocolos_recebidos || []);
+
+    const total = job.total_lotes || 1;
+    const enviados = job.lotes_enviados || 0;
+    const pct = total > 0 ? Math.round((enviados / total) * 100) : 0;
+
+    document.getElementById("barra").style.width = (job.status === "concluido" ? 100 : pct) + "%";
+    document.getElementById("stat-guias").textContent = job.total_guias || "—";
+    document.getElementById("stat-lotes").textContent = job.total_lotes || "—";
+    document.getElementById("stat-enviados").textContent = job.lotes_enviados || 0;
+
+    if (job.status === "concluido" || job.status === "erro") {
+      clearInterval(polling);
+      document.getElementById("btn-enviar").disabled = false;
+      document.getElementById("btn-enviar").textContent = "▶ Processar guias";
+      mostrarDownloads(job);
+    }
+  }
+
+  function atualizarProtocolos(protocolos) {
+    if (!protocolos || protocolos.length === 0) return;
+    const bloco = document.getElementById("bloco-protocolos");
+    const lista = document.getElementById("lista-protocolos");
+    bloco.style.display = "block";
+    lista.innerHTML = protocolos.map((p, i) =>
+      `<div><span style="color:#888;">Lote ${i+1}:</span> <strong style="color:#0d47a1;">${p}</strong></div>`
+    ).join("");
+  }
+
+  function atualizarBadge(status) {
+    const badge = document.getElementById("badge-status");
+    const txt = document.getElementById("txt-status");
+    badge.className = "status-badge badge-" + status;
+    const labels = {
+      iniciando: "Iniciando...",
+      lendo_dados: "Lendo planilha...",
+      enviando: "Enviando lotes ao portal...",
+      concluido: "Concluído",
+      erro: "Erro no processamento",
+    };
+    badge.textContent = labels[status] || status;
+    txt.textContent = "";
+  }
+
+  let ultimoLog = 0;
+  function atualizarLog(logs) {
+    const box = document.getElementById("log-box");
+    const novos = logs.slice(ultimoLog);
+    ultimoLog = logs.length;
+    novos.forEach(entry => {
+      const linha = document.createElement("div");
+      linha.textContent = "› " + entry.msg;
+      if (entry.nivel === "erro") linha.className = "log-erro";
+      if (entry.nivel === "aviso") linha.className = "log-aviso";
+      box.appendChild(linha);
+    });
+    if (novos.length) box.scrollTop = box.scrollHeight;
+  }
+
+  function mostrarDownloads(job) {
+    const div = document.getElementById("downloads");
+    div.innerHTML = "";
+    div.style.display = "flex";
+
+    if (job.xmls_zip) {
+      div.innerHTML += btnDownload("xmls", "&#x1F4C1; Baixar XMLs dos lotes");
+    }
+    if (job.resultado_path) {
+      div.innerHTML += btnDownload("resultado", "&#x1F4CA; Resultado (Excel)");
+    }
+    if (job.protocolo_path) {
+      div.innerHTML += btnDownload("protocolos", "&#x1F4CB; Protocolos (CSV)");
+    }
+    if (!div.innerHTML) {
+      div.innerHTML = "<span style='color:#888;font-size:0.85rem;'>Nenhum arquivo disponível para download.</span>";
+    }
+  }
+
+  function btnDownload(tipo, label) {
+    return `<a href="/gnre-difal/download/${jobId}/${tipo}" class="btn btn-success" download>${label}</a>`;
+  }
+
+  function mostrarErroUpload(msg) {
+    let el = document.getElementById("erro-upload");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "erro-upload";
+      el.style.cssText = "background:#ffebee;border-left:4px solid #c62828;border-radius:0 8px 8px 0;" +
+                         "padding:12px 16px;margin-bottom:16px;font-size:0.88rem;color:#b71c1c;white-space:pre-line;";
+      document.getElementById("form-gnre").prepend(el);
+    }
+    el.innerHTML = "⚠️ <strong>Erro:</strong> " + msg.replace(/\n/g, "<br>");
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => { if (el) el.remove(); }, 10000);
+  }
+
+  function resetForm() {
+    document.getElementById("form-gnre").reset();
+    const erroEl = document.getElementById("erro-upload");
+    if (erroEl) erroEl.remove();
+    document.getElementById("cert-nome").textContent = "";
+    document.getElementById("planilha-nome").textContent = "";
+    document.getElementById("painel-progresso").style.display = "none";
+    ultimoLog = 0; jobId = null;
+    if (polling) clearInterval(polling);
+  }
+</script>
+
+</body>
+</html>

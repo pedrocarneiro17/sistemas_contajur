@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<TLote_GNRE xmlns="http://www.gnre.pe.gov.br" versao="2.00">
+  <guias>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>AC</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1087.50</valor>
+          <valor tipo="21">1087.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1087.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>1</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>AL</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1175.00</valor>
+          <valor tipo="21">1175.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1175.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>2</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>AM</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1262.50</valor>
+          <valor tipo="21">1262.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1262.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>3</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>AP</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1350.00</valor>
+          <valor tipo="21">1350.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1350.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>4</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>BA</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1437.50</valor>
+          <valor tipo="21">1437.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1437.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>5</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>CE</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1525.00</valor>
+          <valor tipo="21">1525.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1525.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>6</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>DF</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1612.50</valor>
+          <valor tipo="21">1612.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1612.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>7</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>ES</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1700.00</valor>
+          <valor tipo="21">1700.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1700.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>8</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>GO</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1787.50</valor>
+          <valor tipo="21">1787.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1787.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>9</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>MA</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1875.00</valor>
+          <valor tipo="21">1875.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1875.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>10</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>MG</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">1962.50</valor>
+          <valor tipo="21">1962.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>1962.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>11</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>MS</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2050.00</valor>
+          <valor tipo="21">2050.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2050.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>12</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>MT</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2137.50</valor>
+          <valor tipo="21">2137.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2137.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>13</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>PA</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2225.00</valor>
+          <valor tipo="21">2225.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2225.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>14</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>PB</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2312.50</valor>
+          <valor tipo="21">2312.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2312.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>15</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>PE</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2400.00</valor>
+          <valor tipo="21">2400.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2400.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>16</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>PI</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2487.50</valor>
+          <valor tipo="21">2487.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2487.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>17</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>PR</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2575.00</valor>
+          <valor tipo="21">2575.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2575.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>18</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>RJ</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2662.50</valor>
+          <valor tipo="21">2662.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2662.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>19</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>RN</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2750.00</valor>
+          <valor tipo="21">2750.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2750.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>20</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>RO</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2837.50</valor>
+          <valor tipo="21">2837.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2837.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>21</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>RR</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">2925.00</valor>
+          <valor tipo="21">2925.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>2925.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>22</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>RS</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">3012.50</valor>
+          <valor tipo="21">3012.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>3012.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>23</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>SC</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">3100.00</valor>
+          <valor tipo="21">3100.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>3100.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>24</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>SE</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">3187.50</valor>
+          <valor tipo="21">3187.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>3187.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>25</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>SP</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">3275.00</valor>
+          <valor tipo="21">3275.00</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>3275.00</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>26</identificadorGuia>
+    </TDadosGNRE>
+    <TDadosGNRE versao="2.00">
+      <ufFavorecida>TO</ufFavorecida>
+      <tipoGnre>0</tipoGnre>
+      <contribuinteEmitente>
+        <identificacao>
+          <CNPJ>12345678000100</CNPJ>
+        </identificacao>
+        <razaoSocial>EMPRESA EXEMPLO LTDA</razaoSocial>
+        <endereco>RUA DAS FLORES, 100</endereco>
+        <municipio>50308</municipio>
+        <uf>SP</uf>
+      </contribuinteEmitente>
+      <itensGNRE>
+        <item>
+          <receita>100080</receita>
+          <referencia>
+            <mes>01</mes>
+            <ano>2025</ano>
+          </referencia>
+          <dataVencimento>2025-02-20</dataVencimento>
+          <valor tipo="11">3362.50</valor>
+          <valor tipo="21">3362.50</valor>
+        </item>
+      </itensGNRE>
+      <valorGNRE>3362.50</valorGNRE>
+      <dataPagamento>2025-02-20</dataPagamento>
+      <identificadorGuia>27</identificadorGuia>
+    </TDadosGNRE>
+  </guias>
+</TLote_GNRE>

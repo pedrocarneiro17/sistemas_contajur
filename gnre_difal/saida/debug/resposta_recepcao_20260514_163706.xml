@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><processarResponse xmlns="http://www.gnre.pe.gov.br/webservice/GnreLoteRecepcao"><ns1:TRetLote_GNRE xmlns="http://www.gnre.pe.gov.br" xmlns:ns1="http://www.gnre.pe.gov.br">  <ns1:ambiente>1</ns1:ambiente>
+  <ns1:situacaoRecepcao>
+    <ns1:codigo>305</ns1:codigo>
+    <ns1:descricao>Falha ao recuperar o SOAP Header: Array index out of range: 0</ns1:descricao>
+      </ns1:situacaoRecepcao>
+  </ns1:TRetLote_GNRE></processarResponse></soapenv:Body></soapenv:Envelope>

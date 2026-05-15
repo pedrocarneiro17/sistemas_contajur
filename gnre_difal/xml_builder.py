@@ -50,12 +50,23 @@ NSMAP = {None: NS}
 #   campo extra 99 + mantém <documentoOrigem> normalmente.
 # ---------------------------------------------------------------------------
 _UF_CHAVE_CONFIG: dict[str, dict] = {
-    "MG": {"campo_extra_codigo": "83", "omitir_doc_origem": True},
-    "GO": {"campo_extra_codigo": "83", "omitir_doc_origem": True},
+    "MG": {"campo_extra_codigo": "83",  "omitir_doc_origem": True},
+    "GO": {"campo_extra_codigo": "83",  "omitir_doc_origem": True},
+    "PR": {"campo_extra_codigo": "107", "omitir_doc_origem": False},
     # Adicione outras UFs conforme o portal reportar erros:
-    # "XX": {"campo_extra_codigo": "83", "omitir_doc_origem": True},
+    # "XX": {"campo_extra_codigo": "99", "omitir_doc_origem": False},
 }
 _CAMPO_EXTRA_CHAVE_PADRAO = "99"   # código usado por todas as UFs não listadas acima
+
+# ---------------------------------------------------------------------------
+# Combinações UF+Receita que só aceitam tipoGnre = "0" (Simples).
+# Quando o usuário informar outro tipo, o sistema força "0" automaticamente.
+# ---------------------------------------------------------------------------
+_TIPO_GNRE_FORCADO_SIMPLES: set[tuple[str, str]] = {
+    ("PR", "100102"),
+    # Adicione outras combinações conforme o portal reportar erro 303:
+    # ("XX", "XXXXXX"),
+}
 
 
 def _sub(pai, tag: str, texto: str | None = None) -> etree._Element:
@@ -218,8 +229,17 @@ def construir_dado_gnre(g: DifAlGuia) -> etree._Element:
     dado = etree.Element("TDadosGNRE", nsmap=NSMAP)
     dado.set("versao", "2.00")
 
-    _sub(dado, "ufFavorecida", g.uf_favorecida.upper())
-    _sub(dado, "tipoGnre", g.tipo_gnre)
+    uf = g.uf_favorecida.upper()
+    _sub(dado, "ufFavorecida", uf)
+
+    tipo_gnre = g.tipo_gnre
+    if tipo_gnre != "0" and (uf, g.codigo_receita) in _TIPO_GNRE_FORCADO_SIMPLES:
+        logger.warning(
+            "UF %s receita %s: tipoGnre '%s' não suportado — forçando '0' (Simples).",
+            uf, g.codigo_receita, tipo_gnre,
+        )
+        tipo_gnre = "0"
+    _sub(dado, "tipoGnre", tipo_gnre)
 
     _bloco_emitente(dado, g)
 

@@ -185,7 +185,8 @@ def ler_planilha(caminho: str | Path) -> list[DifAlGuia]:
             "cnpj_destinatario", "cpf_destinatario", "ie_destinatario",
             "municipio_emitente", "municipio_destinatario",
             "cep", "telefone", "periodo_referencia",
-            "receita", "detalhamento_receita", "identificador_guia", "documento_origem",
+            "receita", "detalhamento_receita", "identificador_guia",
+            "documento_origem", "chave_acesso",
             "uf_favorecida", "uf_emitente", "razao_social",
             "razao_social_destinatario", "endereco",
             "tipo_gnre", "documento_origem_tipo",
@@ -266,6 +267,7 @@ def ler_planilha(caminho: str | Path) -> list[DifAlGuia]:
                 detalhamento_receita=_detalhe(row, linha),
                 documento_origem_tipo=_doc_tipo(row),
                 documento_origem=_str(row, "documento_origem"),
+                chave_acesso="".join(c for c in _str(row, "chave_acesso") if c.isdigit()),
                 data_pagamento=_data(row, "data_pagamento"),
                 identificador_guia=_id_guia(row),
             )

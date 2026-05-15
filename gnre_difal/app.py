@@ -84,7 +84,8 @@ def baixar_modelo():
         ("razao_social_destinatario", False, "Razão social do destinatário"),
         ("municipio_destinatario",    False, "Código IBGE 5 dígitos do destinatário"),
         ("documento_origem_tipo",     False, "55=NF-e | 57=CT-e | 65=NFC-e | 10=NF papel"),
-        ("documento_origem",          False, "Chave/número do documento de origem"),
+        ("documento_origem",          False, "Número do documento de origem — ex: 12345"),
+        ("chave_acesso",              False, "Chave de acesso NF-e/CT-e com 44 dígitos (exigida por PR, MG, GO e outras UFs)"),
         ("identificador_guia",        False, "ID interno até 10 dígitos — para controle próprio"),
     ]
 

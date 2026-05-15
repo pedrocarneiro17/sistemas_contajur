@@ -134,7 +134,12 @@ def _bloco_item(pai, g: DifAlGuia) -> None:
     # Algumas UFs não aceitam a chave de 44 dígitos em <documentoOrigem> —
     # nesses casos ela vai SOMENTE como campoExtra (ver _UF_CHAVE_CONFIG).
     uf_cfg = _UF_CHAVE_CONFIG.get(g.uf_favorecida.upper(), {})
-    chave_44 = "".join(c for c in (g.documento_origem or "") if c.isdigit())
+    # Prioridade: coluna chave_acesso (44 dígitos explícita) > documento_origem com 44 dígitos
+    chave_44 = "".join(c for c in (g.chave_acesso or "") if c.isdigit())
+    if len(chave_44) != 44:
+        chave_44 = "".join(c for c in (g.documento_origem or "") if c.isdigit())
+        if len(chave_44) != 44:
+            chave_44 = ""
     chave_eh_nfe = len(chave_44) == 44
     omitir_doc_origem = uf_cfg.get("omitir_doc_origem", False) and chave_eh_nfe
 

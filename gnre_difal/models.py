@@ -68,7 +68,8 @@ class DifAlGuia:
     # --- Outros campos opcionais ---
     detalhamento_receita: str = ""    # código exigido por certas UFs (ex: "1", "2")
     documento_origem_tipo: str = ""   # código do tipo (ex: "55" = NF-e)
-    documento_origem: str = ""        # número/chave do documento
+    documento_origem: str = ""        # número do documento (ex: 12345)
+    chave_acesso: str = ""            # chave de acesso NF-e/CT-e com 44 dígitos
     data_pagamento: str = ""          # AAAA-MM-DD (data prevista de pagamento)
     identificador_guia: str = ""      # número identificador no lote (até 10 dígitos)
 

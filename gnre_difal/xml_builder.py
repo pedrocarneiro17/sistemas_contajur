@@ -39,6 +39,24 @@ logger = logging.getLogger(__name__)
 NS    = "http://www.gnre.pe.gov.br"
 NSMAP = {None: NS}
 
+# ---------------------------------------------------------------------------
+# Mapeamento UF → comportamento da chave de acesso NF-e/CT-e
+#
+# "campo_extra_codigo": código exigido como campoExtra para a chave
+# "omitir_doc_origem" : True = UF não aceita chave de 44 dígitos em
+#                       <documentoOrigem>; a chave deve ir SÓ como campoExtra
+#
+# UFs não listadas aqui usam o comportamento padrão:
+#   campo extra 99 + mantém <documentoOrigem> normalmente.
+# ---------------------------------------------------------------------------
+_UF_CHAVE_CONFIG: dict[str, dict] = {
+    "MG": {"campo_extra_codigo": "83", "omitir_doc_origem": True},
+    "GO": {"campo_extra_codigo": "83", "omitir_doc_origem": True},
+    # Adicione outras UFs conforme o portal reportar erros:
+    # "XX": {"campo_extra_codigo": "83", "omitir_doc_origem": True},
+}
+_CAMPO_EXTRA_CHAVE_PADRAO = "99"   # código usado por todas as UFs não listadas acima
+
 
 def _sub(pai, tag: str, texto: str | None = None) -> etree._Element:
     el = etree.SubElement(pai, tag)
@@ -102,12 +120,17 @@ def _bloco_item(pai, g: DifAlGuia) -> None:
         _sub(item, "detalhamentoReceita", g.detalhamento_receita)
 
     # Documento de origem (NF-e, etc.)
-    # ATENÇÃO: o atributo 'tipo' é OBRIGATÓRIO quando o elemento existe.
-    # Só inclui se ambos estiverem preenchidos; caso contrário omite o elemento.
-    if g.documento_origem and g.documento_origem_tipo:
+    # Algumas UFs não aceitam a chave de 44 dígitos em <documentoOrigem> —
+    # nesses casos ela vai SOMENTE como campoExtra (ver _UF_CHAVE_CONFIG).
+    uf_cfg = _UF_CHAVE_CONFIG.get(g.uf_favorecida.upper(), {})
+    chave_44 = "".join(c for c in (g.documento_origem or "") if c.isdigit())
+    chave_eh_nfe = len(chave_44) == 44
+    omitir_doc_origem = uf_cfg.get("omitir_doc_origem", False) and chave_eh_nfe
+
+    if g.documento_origem and g.documento_origem_tipo and not omitir_doc_origem:
         doc = _sub(item, "documentoOrigem", g.documento_origem)
         doc.set("tipo", g.documento_origem_tipo)
-    elif g.documento_origem and not g.documento_origem_tipo:
+    elif g.documento_origem and not g.documento_origem_tipo and not omitir_doc_origem:
         logger.warning(
             "UF %s: 'documento_origem' preenchido mas 'documento_origem_tipo' vazio — "
             "elemento <documentoOrigem> omitido (tipo é obrigatório pelo schema).",
@@ -140,14 +163,16 @@ def _bloco_item(pai, g: DifAlGuia) -> None:
     _bloco_destinatario(item, g)
 
     # Campos extras (máx 3)
-    # Injeta automaticamente o campo extra 99 (Chave de Acesso NF-e/CT-e)
-    # quando documento_origem for uma chave de 44 dígitos e o código 99
-    # ainda não estiver nos campos_extras informados manualmente.
+    # Injeta automaticamente o campo extra com a chave de acesso NF-e/CT-e
+    # usando o código correto para cada UF (83, 99, etc.).
     campos_extras_efetivos = list(g.campos_extras or [])
-    chave = "".join(c for c in (g.documento_origem or "") if c.isdigit())
     codigos_ja_presentes = {str(c) for c, _ in campos_extras_efetivos}
-    if len(chave) == 44 and "99" not in codigos_ja_presentes:
-        campos_extras_efetivos.insert(0, ("99", chave))
+    codigo_chave = uf_cfg.get("campo_extra_codigo", _CAMPO_EXTRA_CHAVE_PADRAO)
+
+    if chave_eh_nfe and codigo_chave not in codigos_ja_presentes:
+        campos_extras_efetivos.insert(0, (codigo_chave, chave_44))
+        logger.debug("UF %s: campo extra %s (chave NF-e) injetado automaticamente.",
+                     g.uf_favorecida, codigo_chave)
 
     if campos_extras_efetivos:
         extras = _sub(item, "camposExtras")

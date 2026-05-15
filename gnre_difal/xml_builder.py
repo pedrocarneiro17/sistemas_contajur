@@ -52,7 +52,7 @@ NSMAP = {None: NS}
 _UF_CHAVE_CONFIG: dict[str, dict] = {
     "MG": {"campo_extra_codigo": "83",  "omitir_doc_origem": True},
     "GO": {"campo_extra_codigo": "83",  "omitir_doc_origem": True},
-    "PR": {"campo_extra_codigo": "107", "omitir_doc_origem": True},
+    "PR": {"campo_extra_codigo": "107", "omitir_doc_origem": False},
     # Adicione outras UFs conforme o portal reportar erros:
     # "XX": {"campo_extra_codigo": "99", "omitir_doc_origem": False},
 }
